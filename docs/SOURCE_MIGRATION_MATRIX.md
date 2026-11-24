@@ -9,9 +9,9 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/amoeba_system.gd` | `src/ecology/amoebaSystem.ts` | Pending |
 | `scripts/amoeba_visual.gd` | `src/rendering/amoebaVisual.ts` | Pending |
 | `scripts/bacterium.gd` | `src/ecology/bacterium.ts` | Pending |
-| `scripts/board.gd` | `src/geometry/board.ts` | Pending |
+| `scripts/board.gd` | `src/geometry/board.ts` | Implemented / local regression tests passed; upstream integration pending |
 | `scripts/capture_feedback.gd` | `src/geometry/captureFeedback.ts` | Pending |
-| `scripts/cell.gd` | `src/geometry/cell.ts` | Pending |
+| `scripts/cell.gd` | `src/geometry/cell.ts` | Implemented / local regression tests passed; upstream integration pending |
 | `scripts/clot.gd` | `src/geometry/clot.ts` | Pending |
 | `scripts/conjoined.gd` | `src/ecology/conjoined.ts` | Pending |
 | `scripts/creature_cinema.gd` | `src/cinema/creatureCinema.ts` | Pending |
@@ -36,7 +36,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/home_pond.gd` | `src/components/homePond.ts` | Pending |
 | `scripts/hud.gd` | `src/components/hud.ts` | Pending |
 | `scripts/injury_motes.gd` | `src/rendering/injuryMotes.ts` | Pending |
-| `scripts/input_controller.gd` | `src/geometry/inputController.ts` | Pending |
+| `scripts/input_controller.gd` | `src/geometry/inputController.ts` | Implemented / local regression tests passed; upstream integration pending |
 | `scripts/journey_boss.gd` | `src/campaign/journeyBoss.ts` | Pending |
 | `scripts/journey_discoveries.gd` | `src/campaign/journeyDiscoveries.ts` | Pending |
 | `scripts/journey_ecology.gd` | `src/ecology/journeyEcology.ts` | Pending |
@@ -133,7 +133,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `tests/fluid_dynamics.gd` | `tests/fluidDynamics.test.ts` | Pending |
 | `tests/food_web.gd` | `tests/foodWeb.test.ts` | Pending |
 | `tests/frame_sample.gd` | `tests/frameSample.test.ts` | Pending |
-| `tests/free_polygons.gd` | `tests/freePolygons.test.ts` | Pending |
+| `tests/free_polygons.gd` | `tests/freePolygons.test.ts` | Partially covered by tests/boardInput.test.ts; original run/GUI assertions pending |
 | `tests/full_run.gd` | `tests/fullRun.test.ts` | Pending |
 | `tests/game_feel.gd` | `tests/gameFeel.test.ts` | Pending |
 | `tests/habitat_events.gd` | `tests/habitatEvents.test.ts` | Pending |
@@ -158,13 +158,13 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `tests/journey_visual.gd` | `tests/journeyVisual.test.ts` | Pending |
 | `tests/loop_routes.gd` | `tests/loopRoutes.test.ts` | Pending |
 | `tests/mission_appearance.gd` | `tests/missionAppearance.test.ts` | Pending |
-| `tests/mother_boundary.gd` | `tests/motherBoundary.test.ts` | Pending |
+| `tests/mother_boundary.gd` | `tests/motherBoundary.test.ts` | Partially covered by tests/boardInput.test.ts; original run/GUI assertions pending |
 | `tests/mother_damage.gd` | `tests/motherDamage.test.ts` | Pending |
 | `tests/mother_damage_reel.gd` | `tests/motherDamageReel.test.ts` | Pending |
 | `tests/mother_invasion_reel.gd` | `tests/motherInvasionReel.test.ts` | Pending |
 | `tests/motion_pixels.gd` | `tests/motionPixels.test.ts` | Pending |
 | `tests/motion_reel.gd` | `tests/motionReel.test.ts` | Pending |
-| `tests/node_drift.gd` | `tests/nodeDrift.test.ts` | Pending |
+| `tests/node_drift.gd` | `tests/nodeDrift.test.ts` | Partially covered by tests/boardInput.test.ts; original run/GUI assertions pending |
 | `tests/onboarding.gd` | `tests/onboarding.test.ts` | Pending |
 | `tests/petriverse_trailer_capture.gd` | `tests/petriverseTrailerCapture.test.ts` | Pending |
 | `tests/phage_visuals.gd` | `tests/phageVisuals.test.ts` | Pending |
