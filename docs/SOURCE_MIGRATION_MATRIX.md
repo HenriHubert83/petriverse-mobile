@@ -51,7 +51,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/journey_route.gd` | `src/campaign/journeyRoute.ts` | Pending |
 | `scripts/journey_save.gd` | `src/storage/journeySave.ts` | Pending |
 | `scripts/lens_optics.gd` | `src/rendering/lensOptics.ts` | Pending |
-| `scripts/loop_geometry.gd` | `src/geometry/loopGeometry.ts` | Pending |
+| `scripts/loop_geometry.gd` | `src/geometry/loopGeometry.ts` | Implemented / 4 local tests passed; upstream parity pending |
 | `scripts/loop_resolver.gd` | `src/geometry/loopResolver.ts` | Pending |
 | `scripts/loop_strain.gd` | `src/geometry/loopStrain.ts` | Pending |
 | `scripts/main.gd` | `src/engine/main.ts` | Pending |
