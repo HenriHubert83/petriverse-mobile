@@ -8,7 +8,7 @@ An independent, free landscape mobile adaptation of **Petriverse**, originally c
 - Planned stack: React Native, Expo, TypeScript, React Native Skia.
 - Targets: iOS and Android. Offline, no ads, no in-app purchases.
 
-**Status: pre-implementation.** This repository contains planning documentation and the original license. There is not yet a runnable Expo app.
+**Status: development foundation.** The phase-02-foundation branch includes an unverified Expo shell, a synthetic Skia diagnostic and the first geometry port. Not a playable game yet. Main remains the audit baseline until review and merge.
 
 ## Development
 See [technical audit](docs/TECHNICAL_AUDIT.md), [feature parity](docs/FEATURE_PARITY.md), [roadmap](docs/MOBILE_ROADMAP.md), and [development log](DEVLOG.md). GitHub is the source of truth; import into Replit when the mobile workspace is runnable. Exact dependency versions must be selected and validated against the supported Expo SDK.
