@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Petriverse",
+    "slug": "petriverse-mobile",
+    "version": "0.1.0",
+    "orientation": "landscape",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.aiengineerhub.petriverse"
+    },
+    "android": {
+      "package": "com.aiengineerhub.petriverse",
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
+        }
+      ]
+    ],
+    "updates": {
+      "enabled": false
+    }
+  }
+}
