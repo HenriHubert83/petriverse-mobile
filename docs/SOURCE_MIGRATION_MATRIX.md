@@ -12,7 +12,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/board.gd` | `src/geometry/board.ts` | Implemented / local regression tests passed; upstream integration pending |
 | `scripts/capture_feedback.gd` | `src/geometry/captureFeedback.ts` | Pending |
 | `scripts/cell.gd` | `src/geometry/cell.ts` | Implemented / local regression tests passed; upstream integration pending |
-| `scripts/clot.gd` | `src/geometry/clot.ts` | Pending |
+| `scripts/clot.gd` | `src/geometry/clot.ts` | Implemented / local recovery tests passed; run and rendering integration pending |
 | `scripts/conjoined.gd` | `src/ecology/conjoined.ts` | Pending |
 | `scripts/creature_cinema.gd` | `src/cinema/creatureCinema.ts` | Pending |
 | `scripts/creature_film_stage.gd` | `src/cinema/creatureFilmStage.ts` | Pending |
@@ -78,8 +78,8 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/tissue_motion.gd` | `src/rendering/tissueMotion.ts` | Pending |
 | `scripts/title_screen.gd` | `src/components/titleScreen.ts` | Pending |
 | `scripts/ui_style.gd` | `src/components/uiStyle.ts` | Pending |
-| `scripts/water_interaction.gd` | `src/rendering/waterInteraction.ts` | Pending |
-| `scripts/water_tracers.gd` | `src/rendering/waterTracers.ts` | Pending |
+| `scripts/water_interaction.gd` | `src/rendering/waterInteraction.ts` | Implemented / local wake tests passed; shader integration pending |
+| `scripts/water_tracers.gd` | `src/rendering/waterTracers.ts` | CPU transport and instance encoding implemented / local constant-flow tests passed; Godot PRNG differs, native batching pending |
 | `shaders/amoeba_arm.gdshader` | `src/rendering/shaders/amoebaArm.ts` | Pending |
 | `shaders/amoeba_body.gdshader` | `src/rendering/shaders/amoebaBody.ts` | Pending |
 | `shaders/cytoplasm_granules.gdshader` | `src/rendering/shaders/cytoplasmGranules.ts` | Pending |
@@ -89,9 +89,9 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `shaders/living_bridge.gdshader` | `src/rendering/shaders/livingBridge.ts` | Pending |
 | `shaders/living_cilia.gdshader` | `src/rendering/shaders/livingCilia.ts` | Pending |
 | `shaders/living_tissue.gdshader` | `src/rendering/shaders/livingTissue.ts` | Pending |
-| `shaders/membrane.gdshader` | `src/rendering/shaders/membrane.ts` | Pending |
+| `shaders/membrane.gdshader` | `src/rendering/shaders/membrane.ts` | SkSL source translated and wired to diagnostic / native compilation and visual comparison pending |
 | `shaders/microscope_field.gdshader` | `src/rendering/shaders/microscopeField.ts` | Pending |
-| `shaders/organic_motion.gdshaderinc` | `src/rendering/shaders/organicMotion.ts` | Pending |
+| `shaders/organic_motion.gdshaderinc` | `src/rendering/shaders/organicMotion.ts` | SkSL source translated / native compilation pending |
 | `shaders/phage.gdshader` | `src/rendering/shaders/phage.ts` | Pending |
 | `shaders/pond_optics.gdshaderinc` | `src/rendering/shaders/pondOptics.ts` | Pending |
 | `shaders/pond_specimen.gdshader` | `src/rendering/shaders/pondSpecimen.ts` | Pending |
@@ -109,7 +109,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `tests/campaign_reel.gd` | `tests/campaignReel.test.ts` | Pending |
 | `tests/campaign_visual.gd` | `tests/campaignVisual.test.ts` | Pending |
 | `tests/capture_confidence.gd` | `tests/captureConfidence.test.ts` | Pending |
-| `tests/clot_recovery.gd` | `tests/clotRecovery.test.ts` | Pending |
+| `tests/clot_recovery.gd` | `tests/clotRecovery.test.ts` | Partial / tests/livingPresentation.test.ts covers recovery model; run integration pending |
 | `tests/cradle_story.gd` | `tests/cradleStory.test.ts` | Pending |
 | `tests/cradle_story_visual.gd` | `tests/cradleStoryVisual.test.ts` | Pending |
 | `tests/creature_arrivals.gd` | `tests/creatureArrivals.test.ts` | Pending |
@@ -130,7 +130,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `tests/expedition_creatures.gd` | `tests/expeditionCreatures.test.ts` | Pending |
 | `tests/feel_reel.gd` | `tests/feelReel.test.ts` | Pending |
 | `tests/finale_pacing.gd` | `tests/finalePacing.test.ts` | Pending |
-| `tests/fluid_dynamics.gd` | `tests/fluidDynamics.test.ts` | Partial / tests/fluidCapture.test.ts covers field and board assertions; journey and tracer assertions pending |
+| `tests/fluid_dynamics.gd` | `tests/fluidDynamics.test.ts` | Partial / fluidCapture.test.ts and livingPresentation.test.ts cover CPU field, board and constant-flow tracer assertions; actual journey and native tracer integration pending |
 | `tests/food_web.gd` | `tests/foodWeb.test.ts` | Pending |
 | `tests/frame_sample.gd` | `tests/frameSample.test.ts` | Pending |
 | `tests/free_polygons.gd` | `tests/freePolygons.test.ts` | Partially covered by tests/boardInput.test.ts; original run/GUI assertions pending |
