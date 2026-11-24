@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {area,contains,simplePolygon,segmentsIntersect,distanceToSegment,validate,canAppend,captureValid,touchesMother} from '../src/geometry/loopGeometry';
+const p=(x:number,y:number)=>({x,y});
+const anchors=[p(0,0),p(20,0),p(20,20),p(0,20),p(10,0),p(40,40)];
+const square=anchors.slice(0,4), ready=()=>true;
+test('area, boundary tolerance and inside/outside',()=>{assert.equal(area(square),400);assert.equal(contains(p(10,10),square),true);assert.equal(contains(p(22,10),square),true);assert.equal(contains(p(22.01,10),square),false);});
+test('degenerate and crossing edges',()=>{assert.equal(distanceToSegment(p(3,4),p(0,0),p(0,0)),5);assert.equal(segmentsIntersect(p(0,0),p(20,20),p(20,0),p(0,20)),true);assert.equal(simplePolygon([anchors[0],anchors[2],anchors[1],anchors[3]]),false);assert.equal(simplePolygon([anchors[0],anchors[1],anchors[4],anchors[3]]),false);assert.equal(simplePolygon([p(0,0),p(1,0),p(0,1)]),false);});
+test('readiness, uniqueness, path length and bounds',()=>{assert.equal(validate([0,1,2,3],anchors,ready),true);assert.equal(validate([0,1,2,3],anchors,id=>id!==2),false);assert.equal(validate([0,1,0],anchors,ready),false);assert.equal(validate([0,1,9],anchors,ready),false);assert.equal(validate([0,1,2,3],anchors,ready,3),false);});
+test('mother boundary and append restrictions',()=>{assert.equal(touchesMother(square,p(25,10),3),true);assert.equal(captureValid([0,1,2,3],{anchors,center:p(10,10),motherRadius:1},ready),false);assert.equal(captureValid([0,1,2,3],{anchors,center:p(50,50),motherRadius:1},ready),true);assert.equal(canAppend([0,1],4,anchors,ready),false);assert.equal(canAppend([0,2,1],3,anchors,ready),false);assert.equal(canAppend([0,1],2,anchors,ready),true);});
