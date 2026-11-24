@@ -27,7 +27,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/evolution_comparison.gd` | `src/components/evolutionComparison.ts` | Pending |
 | `scripts/evolution_reveal.gd` | `src/components/evolutionReveal.ts` | Pending |
 | `scripts/expedition_creatures.gd` | `src/campaign/expeditionCreatures.ts` | Pending |
-| `scripts/fluid_field.gd` | `src/engine/fluidField.ts` | Pending |
+| `scripts/fluid_field.gd` | `src/engine/fluidField.ts` | CPU simulation and RGBA encoding implemented / local tests passed; native GPU upload and run integration pending |
 | `scripts/game_feel.gd` | `src/rendering/gameFeel.ts` | Pending |
 | `scripts/habitat_events.gd` | `src/campaign/habitatEvents.ts` | Pending |
 | `scripts/harvest.gd` | `src/campaign/harvest.ts` | Scope review pending |
@@ -52,8 +52,8 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/journey_save.gd` | `src/storage/journeySave.ts` | Pending |
 | `scripts/lens_optics.gd` | `src/rendering/lensOptics.ts` | Pending |
 | `scripts/loop_geometry.gd` | `src/geometry/loopGeometry.ts` | Implemented / 4 local tests passed; upstream parity pending |
-| `scripts/loop_resolver.gd` | `src/geometry/loopResolver.ts` | Pending |
-| `scripts/loop_strain.gd` | `src/geometry/loopStrain.ts` | Pending |
+| `scripts/loop_resolver.gd` | `src/geometry/loopResolver.ts` | Partial / shared capture and journey dispatch tested; legacy resolver and journey harvest pending |
+| `scripts/loop_strain.gd` | `src/geometry/loopStrain.ts` | Implemented / local tests passed |
 | `scripts/main.gd` | `src/engine/main.ts` | Pending |
 | `scripts/microscope.gd` | `src/rendering/microscope.ts` | Pending |
 | `scripts/mission_appearance.gd` | `src/rendering/missionAppearance.ts` | Pending |
@@ -61,7 +61,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/mother_appearance.gd` | `src/rendering/motherAppearance.ts` | Pending |
 | `scripts/mother_damage.gd` | `src/engine/motherDamage.ts` | Pending |
 | `scripts/mutation_card.gd` | `src/components/mutationCard.ts` | Pending |
-| `scripts/mutations.gd` | `src/evolution/mutations.ts` | Pending |
+| `scripts/mutations.gd` | `src/evolution/mutations.ts` | Partial / captureRules.ts recovery, damage and limits tested; catalogue and offers pending |
 | `scripts/organism_arrival.gd` | `src/ecology/organismArrival.ts` | Pending |
 | `scripts/phage_cluster.gd` | `src/ecology/phageCluster.ts` | Pending |
 | `scripts/phage_system.gd` | `src/ecology/phageSystem.ts` | Pending |
@@ -130,7 +130,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `tests/expedition_creatures.gd` | `tests/expeditionCreatures.test.ts` | Pending |
 | `tests/feel_reel.gd` | `tests/feelReel.test.ts` | Pending |
 | `tests/finale_pacing.gd` | `tests/finalePacing.test.ts` | Pending |
-| `tests/fluid_dynamics.gd` | `tests/fluidDynamics.test.ts` | Pending |
+| `tests/fluid_dynamics.gd` | `tests/fluidDynamics.test.ts` | Partial / tests/fluidCapture.test.ts covers field and board assertions; journey and tracer assertions pending |
 | `tests/food_web.gd` | `tests/foodWeb.test.ts` | Pending |
 | `tests/frame_sample.gd` | `tests/frameSample.test.ts` | Pending |
 | `tests/free_polygons.gd` | `tests/freePolygons.test.ts` | Partially covered by tests/boardInput.test.ts; original run/GUI assertions pending |
