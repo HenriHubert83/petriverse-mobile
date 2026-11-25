@@ -2,6 +2,8 @@
 
 Source baseline: Petriverse 0.3.0, be96d3e0641571cc37255fb8701ea83e20c28aee. All entries start unverified and unimplemented on mobile. Mark only with implementation reference plus verification evidence. Do not confuse inventory with completion.
 
+Checkpoint 2026-11-25: an integrated headless encounter now covers capture rewards, Mother damage, recovery, existing ecology and boss phases, with 67 passing CPU test groups. See [encounter engine](ENCOUNTER_ENGINE.md) for exact coverage and exclusions. The feature boxes below remain open because mobile/runtime and complete-journey parity are not yet demonstrated.
+
 ## Core
 - [ ] Board and biome layouts, drifting cells and readiness.
 - [ ] Draw 3-8-cell membranes; mutation-specific limits; swept hit tests, backtracking, closure and release.

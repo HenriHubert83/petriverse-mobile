@@ -12,3 +12,5 @@ Goal: complete mobile adaptation, not a reduced edition. Work in reviewable incr
 8. [ ] Beta, signing and store verification; release free after parity and distribution gates pass.
 
 Proposed structure: src/engine, src/geometry, src/ecology, src/campaign, src/evolution, src/rendering, src/cinema, src/audio, src/storage, src/components, app, assets, data, tests, docs. Adapt to actual Expo scaffold. Keep gameplay independent from renderer. Avoid additional SDK dependencies until justified.
+
+Current checkpoint (2026-11-25): the headless encounter now joins geometry, fluid, organisms, harvest, health, recovery and boss phases. All 67 CPU test groups pass. The next content integration is source stage data, bloom/wave scheduling and lessons, alongside installed Expo/typecheck/device validation on a supported development host. See [coverage and runtime boundary](ENCOUNTER_ENGINE.md). No roadmap phase is declared complete solely from these CPU results.

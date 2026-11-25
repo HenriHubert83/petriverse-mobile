@@ -1,5 +1,5 @@
 // Shared capture and journey dispatch from prototype/scripts/loop_resolver.gd.
-// See CREDITS.md and LICENSE. The actual journey harvest rules are not yet ported.
+// See CREDITS.md and LICENSE. Journey rewards are implemented in campaign/journeyHarvest.ts.
 import {Point,captureValid,contains,polygonFor} from './loopGeometry';
 import {Cell} from './cell';
 import {penalty} from './loopStrain';
@@ -19,7 +19,7 @@ export function targets(path:readonly number[],board:CaptureBoard,ready:(id:numb
 export interface JourneyCaptureContext<Result extends object> {
   state:string;board:CaptureBoard;cells:readonly Cell[];mutations:readonly string[];maxVertices:number;
   isReady(id:number):boolean;targetSnapshot():readonly Target[];
-  // This callback is the future JourneyHarvest.commit port, not a placeholder reward implementation.
+  // Cells are spent before JourneyHarvest.commit applies rewards and mutation effects.
   commitHarvest(plan:CapturePlan):Result;
 }
 export function commitJourney<Result extends object>(path:readonly number[],run:JourneyCaptureContext<Result>):InvalidCapture|(Result&{strain:number}){

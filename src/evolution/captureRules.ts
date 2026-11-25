@@ -1,5 +1,5 @@
 // Capture-related subset of prototype/scripts/mutations.gd. See CREDITS.md and LICENSE.
-// The catalogue, seeded offers and meal bonuses are separate migration work.
+// Meal bonuses live in campaign/journeyHarvest.ts; catalogue and seeded offers are pending.
 export function recovery(selected:readonly string[],size:number,base=3):number{
   let seconds=selected.includes('fission')&&size<=4?Math.max(1,base-1):base;
   if(selected.includes('elastic'))seconds+=0.6;
