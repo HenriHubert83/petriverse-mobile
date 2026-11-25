@@ -2,6 +2,7 @@
 // PCG (c) 2014 M.E. O'Neill, Apache-2.0; Godot contributors, MIT.
 // See licenses/PCG.txt and licenses/Godot.txt. Adapted to TypeScript BigInt.
 const MASK=(1n<<64n)-1n,DEFAULT_SEQUENCE=1442695040888963407n;
+export interface RandomSnapshot {state:string;increment:string}
 export class SeededRandom {
   private state=0n;
   private readonly increment:bigint;
@@ -33,4 +34,17 @@ export class SeededRandom {
   pick<T>(values:readonly T[]):T{if(!values.length)throw new RangeError('Empty random choice');return values[this.int(0,values.length-1)];}
   clone():SeededRandom{const result=new SeededRandom(0,(this.increment-1n)>>1n);result.state=this.state;return result;}
   snapshot():string{return this.state.toString();}
+  saveState():RandomSnapshot{return {state:this.state.toString(),increment:this.increment.toString()};}
+  static restore(value:unknown):SeededRandom{
+    if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Invalid random state');
+    const data=value as Record<string,unknown>;
+    const read=(field:string):bigint=>{
+      const text=data[field];
+      if(typeof text!=='string'||!/^(0|[1-9][0-9]{0,19})$/.test(text))throw new Error('Invalid random state');
+      const number=BigInt(text);if(number>MASK)throw new Error('Random state exceeds uint64');return number;
+    };
+    const state=read('state'),increment=read('increment');
+    if((increment&1n)!==1n)throw new Error('Invalid random stream');
+    const result=new SeededRandom(0,(increment-1n)>>1n);result.state=state;return result;
+  }
 }

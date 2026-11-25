@@ -1,5 +1,5 @@
-// In-memory journey progression from prototype/scripts/run_controller.gd.
-// Durable save/profile migration and the home pond are separate work. See CREDITS.md.
+// Journey progression and snapshot boundary from prototype/scripts/run_controller.gd.
+// See CREDITS.md. The home pond and remaining profile integrations are separate work.
 import {EncounterSimulation} from '../engine/encounterSimulation';
 import type {GrowthRole,RescuedSpecimen} from '../engine/encounterSimulation';
 import {SeededRandom} from '../engine/seededRandom';
@@ -8,6 +8,10 @@ import {capacityForStage} from './journeyPlan';
 import type {JourneySpec} from './journeyPlan';
 import {journeyOffers,mutationDefinition} from '../evolution/mutations';
 import type {MasteryAward} from './journeyMastery';
+import {captureEncounter,restoreEncounter,readJourneyHeader,JOURNEY_SAVE_VERSION} from '../storage/journeySnapshot';
+import type {JourneySnapshot} from '../storage/journeySnapshot';
+export {UnsupportedSaveVersionError} from '../storage/journeySnapshot';
+export type {JourneySnapshot} from '../storage/journeySnapshot';
 
 interface ColonyState {
   integrity:number;capacity:number;biomass:number;score:number;mutations:string[];growthRoles:Record<number,GrowthRole>;
@@ -79,5 +83,22 @@ export class JourneySession {
     if(this.current.state!=='loss')return false;
     this.retries++;this.rng=this.checkpoint.rng.clone();this.current=this.createEncounter(copyState(this.checkpoint.colony));
     this.current.heal(Math.max(0,3-this.current.integrity));this.offers=[];return true;
+  }
+  snapshot():JourneySnapshot{
+    this.observeCompletion();
+    return {format:'petriverse-mobile-journey',version:JOURNEY_SAVE_VERSION,seed:this.seed,route:this.route.map(s=>({...s,...(s.families?{families:[...s.families]}:{})})),
+      index:this.index,retries:this.retries,finished:this.finished,offers:[...this.offers],handledCompletion:this.handledCompletion,
+      rng:this.rng.saveState(),checkpoint:{colony:copyState(this.checkpoint.colony),rng:this.checkpoint.rng.saveState()},encounter:captureEncounter(this.current)};
+  }
+  static restore(value:unknown,options:{pauseOnResume?:boolean}={}):JourneySession{
+    const data=readJourneyHeader(value),result=new JourneySession(data.seed);
+    result.index=data.index;result.retries=data.retries;result.finished=data.finished;result.offers=data.offers;result.handledCompletion=data.handledCompletion;
+    result.rng=data.rng;result.checkpoint={colony:data.colony,rng:data.retryRng};
+    result.current=restoreEncounter(data.encounter,data.route[data.index],data.seed,data.index,data.rng,options.pauseOnResume??true);
+    const complete=result.current.state==='complete';
+    if((complete&&data.handledCompletion!==data.index)||(!complete&&data.handledCompletion===data.index)||
+      data.finished!==(complete&&data.index===data.route.length-1)||(!complete&&data.offers.length)||
+      data.offers.some(id=>result.current.mutations.includes(id)))throw Error('Invalid saved journey completion');
+    return result;
   }
 }

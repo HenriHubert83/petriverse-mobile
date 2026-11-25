@@ -56,6 +56,12 @@ shader/fallback behavior and sustained performance have not been recorded.
 Android physical-device validation remains outstanding.
 
 The four setup commits were pushed to `phase-02-foundation`, ending at
-`11e965a07deae2a1a5c348c234df57230e5fb75f`, and verified on GitHub. Journey
-progress is still in memory and is lost when the application closes. Basic
-background pausing exists; durable save/resume is the next porting increment.
+`11e965a07deae2a1a5c348c234df57230e5fb75f`, and verified on GitHub.
+
+A subsequent save/menu increment adds local current-encounter autosaving,
+Continue/New Journey, profile records and backup recovery. All 129 CPU test
+groups and full TypeScript checking pass, and iOS/Android Hermes exports
+completed. These new storage/menu changes still need a physical-device test.
+Pull the latest development branch while preserving local changes, reload Expo
+Go and follow [the save/Continue phone checklist](docs/SAVES.md). No new native
+dependency or package/lockfile change is required for this increment.

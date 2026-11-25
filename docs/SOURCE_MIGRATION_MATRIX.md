@@ -47,16 +47,16 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/journey_harvest.gd` | `src/campaign/journeyHarvest.ts` | Partial / blooms, refill, capture rewards, goals and ecology integration tested; discoveries, habitats and legacy finale pending |
 | `scripts/journey_hud.gd` | `src/mobile/GameScreen.tsx` | Partial / mobile objectives, colony status and encounter states visible in iPhone playtest; full HUD parity pending |
 | `scripts/journey_lesson.gd` | `src/campaign/journeyLesson.ts` | Implemented / two captures and recovery tested through phone-coordinate controller; initial iPhone gameplay reported, detailed lesson/device validation pending |
-| `scripts/journey_mastery.gd` | `src/campaign/journeyMastery.ts` | Implemented / guardian, gatherer, clear-water awards, cap and deduplication tested; profile/home-pond integration pending |
+| `scripts/journey_mastery.gd` | `src/campaign/journeyMastery.ts`, `src/storage/journeyProfile.ts` | Implemented / CPU awards and persistent memory deduplication tested; home-pond presentation pending |
 | `scripts/journey_plan.gd` | `src/campaign/journeyPlan.ts`, `data/journey.json` | Partial / original stages, dishes and colonies imported; full species/form catalogue pending |
-| `scripts/journey_profile.gd` | `src/storage/journeyProfile.ts` | Pending |
+| `scripts/journey_profile.gd` | `src/storage/journeyProfile.ts`, `src/storage/saveRepository.ts` | Partial / current records, residents, mastery, victories and unlock eligibility persisted and tested; home-pond actions and full legacy profile parity pending |
 | `scripts/journey_route.gd` | `src/campaign/journeyRoute.ts` | Partial / seeded 15-encounter route and special visits tested; legacy route/save validation pending |
-| `scripts/journey_save.gd` | `src/storage/journeySave.ts` | Pending |
+| `scripts/journey_save.gd` | `src/storage/journeySnapshot.ts`, `src/storage/organismSnapshot.ts`, `src/storage/saveRepository.ts` | Current mobile state implemented / full snapshot continuation, validation, backup and failure tests pass; phone and desktop-save compatibility pending |
 | `scripts/lens_optics.gd` | `src/rendering/lensOptics.ts` | Pending |
 | `scripts/loop_geometry.gd` | `src/geometry/loopGeometry.ts` | Implemented / 4 local tests passed; upstream parity pending |
 | `scripts/loop_resolver.gd` | `src/geometry/loopResolver.ts` | Partial / shared capture and real journey reward dispatch tested; legacy resolver branch pending |
 | `scripts/loop_strain.gd` | `src/geometry/loopStrain.ts` | Implemented / local tests passed |
-| `scripts/main.gd` | `App.tsx`, `src/mobile/GameScreen.tsx`, `src/mobile/simulationClock.ts` | Partial / mobile game loop, background pause and touch cancellation implemented; original save/profile/title/settings integration pending |
+| `scripts/main.gd` | `App.tsx`, `src/mobile/JourneyApp.tsx`, `src/mobile/saveCoordinator.ts`, `src/mobile/GameScreen.tsx` | Partial / mobile loop, save/profile/title entry and interruption handling integrated; full original menu/settings and device save checks pending |
 | `scripts/microscope.gd` | `src/rendering/EncounterView.tsx`, `src/rendering/organismTextures.ts` | Partial / original base textures visible in initial iPhone playtest; full shader/visual parity and broader device verification pending |
 | `scripts/mission_appearance.gd` | `src/rendering/missionAppearance.ts` | Pending |
 | `scripts/mother_alert.gd` | `src/engine/motherAlert.ts` | Pending |
@@ -74,11 +74,11 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/readable_ui.gd` | `src/components/readableUi.ts` | Pending |
 | `scripts/records.gd` | `src/storage/records.ts` | Pending |
 | `scripts/reticle_cursor.gd` | `src/rendering/reticleCursor.ts` | Pending |
-| `scripts/run_controller.gd` | `src/engine/encounterSimulation.ts`, `src/campaign/journeySession.ts` | Partial / content, lessons, progression, evolution, growth and retry tested; durable saves, colony unlocks, habitats and legacy branches pending |
+| `scripts/run_controller.gd` | `src/engine/encounterSimulation.ts`, `src/campaign/journeySession.ts` | Partial / content, lessons, progression, evolution, growth, retry and current-state durable saves tested; additional colonies, habitats and legacy branches pending |
 | `scripts/run_plan.gd` | `src/campaign/runPlan.ts` | Scope review pending |
 | `scripts/soundscape.gd` | `src/audio/soundscape.ts` | Pending |
 | `scripts/tissue_motion.gd` | `src/rendering/tissueMotion.ts` | Pending |
-| `scripts/title_screen.gd` | `src/components/titleScreen.ts` | Pending |
+| `scripts/title_screen.gd` | `src/mobile/JourneyApp.tsx` | Partial / Continue, New Journey confirmation, help/credits and current records implemented; home pond/journal/settings/colonies presentation pending |
 | `scripts/ui_style.gd` | `src/components/uiStyle.ts` | Pending |
 | `scripts/water_interaction.gd` | `src/rendering/waterInteraction.ts` | Implemented / local wake tests passed; shader integration pending |
 | `scripts/water_tracers.gd` | `src/rendering/waterTracers.ts` | CPU transport and instance encoding implemented / local constant-flow tests passed; Godot PRNG differs, native batching pending |
@@ -149,7 +149,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `tests/home_pond_visual.gd` | `tests/homePondVisual.test.ts` | Pending |
 | `tests/human_pacing.gd` | `tests/humanPacing.test.ts` | Pending |
 | `tests/integration.gd` | `tests/integration.test.ts` | Pending |
-| `tests/interface_dialogs.gd` | `tests/interfaceDialogs.test.ts` | Pending |
+| `tests/interface_dialogs.gd` | `tests/saveCoordinator.test.ts`, `src/mobile/JourneyApp.tsx` | Partial / unfinished-journey protection covered; native alert interaction and remaining dialogs pending |
 | `tests/journey_clarity.gd` | `tests/journeyClarity.test.ts` | Pending |
 | `tests/journey_ecology.gd` | `tests/nudgeFoodWeb.test.ts`, `tests/encounterSimulation.test.ts` | Partial / food-web and gate integration coverage passed; full fixture pending |
 | `tests/journey_feasibility.gd` | `tests/journeyFeasibility.test.ts` | Pending |
@@ -181,10 +181,10 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `tests/producer_lab.gd` | `tests/producerLab.test.ts` | Pending |
 | `tests/rare_visitors.gd` | `tests/rareVisitors.test.ts` | Pending |
 | `tests/rare_visitors_visual.gd` | `tests/rareVisitorsVisual.test.ts` | Pending |
-| `tests/save_recovery.gd` | `tests/saveRecovery.test.ts` | Pending |
+| `tests/save_recovery.gd` | `tests/saveRecovery.test.ts`, `tests/journeySaveSnapshot.test.ts`, `tests/journeyProfile.test.ts`, `tests/persistenceIntegration.test.ts` | Partial / corruption, backup fallback, malformed/future data, failed writes and JSON-profile defaults covered; desktop legacy CFG migration pending |
 | `tests/showcase_capture.gd` | `tests/showcaseCapture.test.ts` | Pending |
 | `tests/test_suite.gd` | `tests/testSuite.test.ts` | Pending |
-| `tests/title_screen.gd` | `tests/titleScreen.test.ts` | Pending |
+| `tests/title_screen.gd` | `tests/saveCoordinator.test.ts`, `tests/persistenceIntegration.test.ts` | Partial / startup, Continue, replacement, ordering and failure behavior tested; native presentation/device checks pending |
 | `tests/trailer_capture.gd` | `tests/trailerCapture.test.ts` | Pending |
 | `tests/visual_motion.gd` | `tests/visualMotion.test.ts` | Pending |
 | `tests/visual_review.gd` | `tests/visualReview.test.ts` | Pending |

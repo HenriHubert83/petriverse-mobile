@@ -22,7 +22,7 @@ export class Clot {
   readonly members:Cell[];readonly duration:number;readonly center:Point;readonly destinations:Point[];
   readonly preyKinds:string[];readonly preyForms:string[];readonly food:number;readonly poison:number;
   readonly mastery:unknown[];readonly restoredNode:number;
-  constructor(readonly serial:number,result:ClotResult,cells:readonly Cell[],mother:Point){
+  constructor(readonly serial:number,result:ClotResult,cells:readonly Cell[],mother:Point,savedDuration?:number){
     this.nodes=result.nodes.slice();this.polygon=result.polygon.map(p=>({...p}));
     this.positions=result.positions.map(p=>({...p}));this.preyKinds=[...(result.preyKinds??[])];
     this.preyForms=[...(result.preyForms??[])];this.food=result.food??0;this.poison=result.poison??0;
@@ -30,7 +30,7 @@ export class Clot {
     const index=this.nodes.indexOf(this.restoredNode);
     if(index>=0){this.nodes.splice(index,1);this.polygon.splice(index,1);}
     if(!this.nodes.length||this.nodes.length!==this.polygon.length||this.nodes.some(id=>!cells[id]))throw Error('Invalid recovery group');
-    this.members=this.nodes.map(id=>cells[id]);this.duration=this.members[0].duration;
+    this.members=this.nodes.map(id=>cells[id]);this.duration=savedDuration??this.members[0].duration;
     const points=this.positions.length?this.positions:this.polygon;
     let center=mul(points.reduce(add,{x:0,y:0}),1/points.length);
     let outward=sub(center,mother);

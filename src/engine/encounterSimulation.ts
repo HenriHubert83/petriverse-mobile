@@ -31,7 +31,7 @@ export type CaptureResult=InvalidCapture|(HarvestResult&{strain:number});
 export interface EncounterOptions {
   seed?:number;waterSeed?:number;encounterIndex?:number;maxIntegrity?:number;integrity?:number;
   biomass?:number;mutations?:readonly string[];growthRoles?:Readonly<Record<number,GrowthRole>>;
-  content?:boolean;guidedLesson?:boolean;rng?:SeededRandom;
+  content?:boolean;guidedLesson?:boolean;rng?:SeededRandom;hydrate?:boolean;
 }
 const len=(p:Point)=>Math.hypot(p.x,p.y);
 const limit=(p:Point,max:number):Point=>len(p)>max?scale(p,max/len(p)):p;
@@ -68,8 +68,10 @@ export class EncounterSimulation {
     this.motherDamage.resetFromIntegrity(this.integrity);this.biomass=options.biomass??0;
     const appearanceSeed=options.encounterIndex===undefined?this.runSeed:this.runSeed^((options.encounterIndex+1)*0x119de1f3);
     this.fluid.reset(this.board.center,this.board.dishRadius,(options.waterSeed??appearanceSeed)^(spec.stage*48271));
-    if(this.contentEnabled){this.harvest.begin(this);if(spec.stage===0&&options.guidedLesson!==false)this.lesson.begin(this);}
+    if(this.contentEnabled&&!options.hydrate){this.harvest.begin(this);if(spec.stage===0&&options.guidedLesson!==false)this.lesson.begin(this);}
   }
+  waterHistory():{id:number;position:Point}[]{return [...this.waterPositions].map(([id,position])=>({id,position:{...position}}));}
+  restoreWaterHistory(values:readonly {id:number;position:Point}[]):void{this.waterPositions=new Map(values.map(v=>[v.id,{...v.position}]));}
   get stageIndex():number{return this.harvest.spec.stage;}
   get maxVertices():number{return this.selection.maxVertices;}
   lessonActive():boolean{return this.lesson.active(this);}

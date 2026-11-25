@@ -2,7 +2,7 @@
 
 Reference: Petriverse 0.3.0, commit `be96d3e0641571cc37255fb8701ea83e20c28aee`. The free, offline, landscape iOS/Android scope is unchanged.
 
-`App.tsx` opens `GameScreen`, which drives a `JourneySession` and draws its current `EncounterSimulation` through `EncounterView`. The former synthetic diagnostic remains available as a development component. On 2026-11-25 Henri confirmed actual play through Expo Go on a physical iPhone in landscape; his screenshot shows encounter 3 of 15. This is the first reported native playtest, with broader device validation still pending.
+`App.tsx` opens `JourneyApp`, which loads local saves and displays the title menu. Continuing or starting a journey opens `GameScreen`, which drives a `JourneySession` and draws its current `EncounterSimulation` through `EncounterView`. The former synthetic diagnostic remains available as a development component. On 2026-11-25 Henri confirmed actual play through Expo Go on a physical iPhone in landscape; his screenshot shows encounter 3 of 15. This is the first reported native playtest, with broader device validation still pending.
 
 ## Runtime boundary
 
@@ -15,8 +15,8 @@ Reference: Petriverse 0.3.0, commit `be96d3e0641571cc37255fb8701ea83e20c28aee`. 
 | `capture`, `release`, `harvestPreview` | Share nucleus eligibility and reward rules. Committed captures spend cells, absorb prey, update food/health/score, create recovery clots and check goals. |
 | `session.update(delta)` | Advances the encounter and observes completion once. Native presentation supplies fixed 1/60-second steps through a clock with bounded catch-up. |
 | `chooseEvolution(id)` | Validates offers and food costs, or heals/continues, then carries colony state into the next briefing. Generated visits suppress offers; six traits is the maximum. |
-| `retry()` | Restores entry colony state and the pre-content RNG, rebuilding the same encounter and healing to at least three organelles. Failed-attempt rewards are discarded. This is an in-memory checkpoint, not save-file recovery. |
-| Pause / application interruption | Cancels input and freezes simulation. Returning from the background requires Resume during active play; suspended wall time is discarded. |
+| `retry()` | Restores entry colony state and the pre-content RNG, rebuilding the same encounter and healing to at least three organelles. Failed-attempt rewards are discarded. This retry checkpoint is included in the durable journey snapshot; retry remains distinct from backup recovery. |
+| Pause / application interruption | Cancels input, freezes simulation and requests a save. Returning from the background or loading active saved play requires Resume; suspended wall time is discarded. |
 | Final encounter | Awards the ending health bonus once, clears enemies and presents the journey result. |
 
 ## Content and preserved rules
@@ -39,7 +39,7 @@ These are implementation details, not measured device performance. Tissue deform
 
 ## Still outside this checkpoint
 
-Durable journey/profile/preferences saves and migrations; home pond/resident management; creature-form assignment, rare visitors and expeditions; habitat route choices; colony unlock/selection; narrated discoveries and field journal; settings/accessibility/reduced-motion controls; complete audio/visual effects; legacy 30-encounter save compatibility and final surges. Form assignment and discovery draws are absent from the encounter RNG stream, so this is not an exact same-seed Godot encounter replay. The native app does not yet preserve progress after process termination.
+Complete preferences/settings, desktop-save migration and future profile integrations; home pond/resident management; creature-form assignment, rare visitors and expeditions; habitat route choices; colony unlock/selection; narrated discoveries and field journal; settings/accessibility/reduced-motion controls; complete audio/visual effects; legacy 30-encounter save compatibility and final surges. Form assignment and discovery draws are absent from the encounter RNG stream, so this is not an exact same-seed Godot encounter replay. Current mobile state now has durable snapshots and recovery; physical-device process-termination testing of this new increment remains pending.
 
 ## Verification on 2026-11-25
 
@@ -53,4 +53,4 @@ Subsequently, Replit installed and locked compatible dependencies, corrected thr
 
 Henri then reported the physical-iPhone landscape playtest described above. The screenshot supports visible organism rendering, layout and progression to encounter 3; his report confirms basic playability. It does not establish a full playthrough, individual shader/fallback behavior, focused interruption testing or sustained performance. No Android physical-device result is recorded. No new automated test execution is claimed by this documentation update.
 
-Next: port the original full mid-encounter save/profile and title-menu flow with validated backup recovery and tests. Continue targeted device validation of touch accuracy, image/shader presentation, interruption/resume and sustained frame/memory behavior alongside the remaining complete-game work in FEATURE_PARITY.md.
+The subsequent save/menu increment adds full snapshots of the implemented encounter, validated storage/backup recovery, current profile records and Continue/New Journey. All 129 CPU groups and full TypeScript checking pass; iOS and Android Hermes exports completed. See SAVES.md for scope and phone checks. Next, validate native close/reopen and interruption behavior while continuing the remaining original content and presentation in FEATURE_PARITY.md.

@@ -2,7 +2,7 @@
 
 Source baseline: Petriverse 0.3.0, be96d3e0641571cc37255fb8701ea83e20c28aee. Checkboxes below denote complete parity scopes. An open box can contain substantial implemented work; use the status table and implementation references to distinguish partial work from missing work. Mark complete only with implementation and verification evidence.
 
-Checkpoint 2026-11-25: the 15-encounter route, guided opening, bloom/arrival director, ordinary ecology decisions, authored events, evolution/growth and in-memory retry are connected to a landscape touch/Skia screen with 21 original textures. Replit reported all 87 CPU groups, full typechecking, dependency checks and Expo Doctor passing. Henri subsequently confirmed actual play on his iPhone in landscape through Expo Go, with a screenshot at encounter 3 of 15. This is an initial native playtest; full gameplay and visual parity are not yet demonstrated. See [encounter engine](ENCOUNTER_ENGINE.md) for coverage and exclusions.
+Checkpoint 2026-11-25: the 15-encounter route, guided opening, bloom/arrival director, ordinary ecology decisions, authored events, evolution/growth and in-memory retry are connected to a landscape touch/Skia screen with 21 original textures. Replit reported all 87 CPU groups, full typechecking, dependency checks and Expo Doctor passing. Henri subsequently confirmed actual play on his iPhone in landscape through Expo Go, with a screenshot at encounter 3 of 15. This is an initial native playtest; full gameplay and visual parity are not yet demonstrated. A subsequent save/menu increment passes 129 CPU groups and full typecheck and exports both native Hermes bundles; its phone validation remains pending. See [encounter engine](ENCOUNTER_ENGINE.md) and [save behavior](SAVES.md) for coverage and exclusions.
 
 ## Current implementation status
 
@@ -10,13 +10,13 @@ Checkpoint 2026-11-25: the 15-encounter route, guided opening, bloom/arrival dir
 |---|---|---|
 | Core play | Board/cells, loop input and capture, recovery, food/poison, Mother damage, nudge and CPU fluid simulation | Complete source comparisons, input edge cases and native fluid/optical presentation |
 | Journey and ecosystem | 12 authored stages plus 3 seeded visits, guided opening, blooms/arrivals, ordinary species behavior, three boss models | Complete species/form assignment, rare visitors/expeditions, habitats and full journey playtesting |
-| Evolution and colony | Mutation offers/costs and effects, Mother growth/roles, repairs, in-memory retry | Additional starting colonies/unlocks, profile connections and full original evolution presentation |
-| Mobile UI | Landscape gameplay, objectives, briefings, pause, adaptation, retry and ending | Original title/menu, Continue/New Journey flow, help, settings and accessibility controls |
-| Interruptions | AppState inactive/background pause, touch cancellation, Android Back pause, bounded frame timing | Durable saving plus focused phone lock/background/multitouch verification |
-| Persistence | In-memory journey and retry; component fluid/phage snapshots | Full current-encounter save/restore, durable profile/preferences, backup recovery, validation/migration and whole-save tests |
-| Discoveries and home | Discovery/rescue/mastery data accumulated by the encounter model | Full 44 creature/form records, journal, narrated cinema, home pond/residents and gardens |
+| Evolution and colony | Mutation offers/costs and effects, Mother growth/roles, repairs, saved retry checkpoint and profile unlock eligibility | Additional starting-colony selection/gameplay and full original evolution presentation |
+| Mobile UI | Landscape gameplay, title with Continue/New Journey and confirmation, help/credits, pause/return, adaptation, retry and ending | Home pond/journal/colony/settings menu entries, accessibility controls and new-menu phone validation |
+| Interruptions | AppState pause, gesture cancellation, Android Back, bounded frame timing and background save request | Focused phone lock/background/multitouch and process-termination verification |
+| Persistence | Full current-mobile-encounter snapshot/restore, eight-second autosave, profile records, backup recovery, validation, JSON-profile defaults and whole-save tests | Native storage verification, complete preferences/future profile systems and desktop-save interoperability |
+| Discoveries and home | Current discovery/rescue/mastery data persisted into profile records | Full 44 creature/form records, journal, narrated cinema, home pond/resident interactions and gardens |
 | Presentation | 21 original base textures, basic cues, CPU tracers, membrane shader/fallback | Remaining art/forms, fonts, tissue/optics/ingestion/particles, music/narration/effects and quality options |
-| Validation | 87 CPU groups and Replit setup checks reported passing; initial user-reported iPhone playtest | Full original regression coverage, complete playthrough, shader comparisons, Android, frame/memory/thermal and release checks |
+| Validation | 129 CPU groups and full typecheck pass; both Hermes exports; prior Replit setup checks and initial user-reported iPhone playtest | New-save/menu phone checks, full original regressions/playthrough, shader comparisons, Android, performance and release checks |
 
 No reliable single completion percentage follows from these rows. A stage-transition test is not a full playthrough, and the initial iPhone test does not establish every shader path or organism interaction.
 
@@ -24,11 +24,11 @@ No reliable single completion percentage follows from these rows. A stage-transi
 
 | Capability | Pinned original behavior | Mobile status |
 |---|---|---|
-| Autosave | Every eight seconds or on journey-state changes, plus important actions and exit | Missing durable storage |
-| Continue / New Journey | Continue or view completed journey; start new; confirm replacement of an unfinished journey | Missing startup flow; new journey currently offered only at the ending |
-| Main menu | Title plus home pond, advanced colonies, help, journal, experiments and settings | Gameplay screen only; full original menu missing |
-| Interruption safety | Focus loss pauses; pausing cancels selection/nudge; continuing an active save restores paused | Basic mobile pause/cancellation implemented; persistence and device interruption verification missing |
-| Save recovery tests | Primary/backup corruption, malformed checkpoint, failed writes, profile defaults and legacy migration | Component snapshot tests exist; complete durable-save recovery tests missing |
+| Autosave | Every eight seconds or on journey-state changes, plus important actions and exit | Implemented for current encounter and transitions/background; phone check pending |
+| Continue / New Journey | Continue or view completed journey; start new; confirm replacement of an unfinished journey | Implemented title flow and paused restoration; phone check pending |
+| Main menu | Title plus home pond, advanced colonies, help, journal, experiments and settings | Core journey entry, help and credits implemented; remaining original entries follow their systems |
+| Interruption safety | Focus loss pauses; pausing cancels selection/nudge; continuing an active save restores paused | Pause/cancellation and save requests implemented; focused device verification pending |
+| Save recovery tests | Primary/backup corruption, malformed checkpoint, failed writes, profile defaults and legacy migration | Snapshot/repository/profile/coordinator/integration tests pass; desktop CFG migration not implemented |
 
 Source evidence: original [main/autosave and resume flow](https://github.com/HenriHubert83/petriverse/blob/be96d3e0641571cc37255fb8701ea83e20c28aee/prototype/scripts/main.gd), [title screen](https://github.com/HenriHubert83/petriverse/blob/be96d3e0641571cc37255fb8701ea83e20c28aee/prototype/scripts/title_screen.gd), [journey snapshots and recovery](https://github.com/HenriHubert83/petriverse/blob/be96d3e0641571cc37255fb8701ea83e20c28aee/prototype/scripts/journey_save.gd), and [save recovery tests](https://github.com/HenriHubert83/petriverse/blob/be96d3e0641571cc37255fb8701ea83e20c28aee/prototype/tests/save_recovery.gd). These are porting requirements. Mobile lifecycle integration adapts their intent to iOS and Android.
 

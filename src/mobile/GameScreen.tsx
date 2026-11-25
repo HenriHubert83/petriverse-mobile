@@ -1,4 +1,4 @@
-import React,{useCallback,useEffect,useMemo,useState} from 'react';
+import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {AppState,BackHandler,Pressable,ScrollView,StyleSheet,Text,View} from 'react-native';
 import {JourneySession} from '../campaign/journeySession';
 import {dishForStage} from '../campaign/journeyPlan';
@@ -14,30 +14,48 @@ function Button({label,onPress,disabled=false,quiet=false}:{label:string;onPress
     style={({pressed})=>[styles.button,quiet&&styles.quietButton,(pressed||disabled)&&styles.dim]}><Text style={styles.buttonText}>{label}</Text></Pressable>;
 }
 const timeLeft=(seconds:number)=>{const left=Math.ceil(Math.max(0,seconds));return `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;};
-export function GameScreen(){
-  const [session,setSession]=useState(()=>new JourneySession(Date.now()>>>0));
+interface GameScreenProps{
+  session:JourneySession;onSave:(session:JourneySession)=>void;onInterrupted:(session:JourneySession)=>void;
+  onHome:()=>void;onNewJourney:()=>void;onRetrySave:()=>void;onRetryProfile:()=>void;
+  saveStatus:string;saveError:string;profileNotice:string;recoveryNotice:string;busy:boolean;
+}
+export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onRetrySave,onRetryProfile,
+  saveStatus,saveError,profileNotice,recoveryNotice,busy}:GameScreenProps){
   const [,setRevision]=useState(0),[appActive,setAppActive]=useState(AppState.currentState!=='background'&&AppState.currentState!=='inactive');
+  const activeRef=useRef(appActive);
   const refresh=useCallback(()=>setRevision(v=>v+1),[]);
   const run=session.current,touch=useMemo(()=>new TouchController(run),[run]);
   const tracers=useMemo(()=>new WaterTracers(),[run]);
-  const interaction=useCallback(()=>{session.observeCompletion();refresh();},[session,refresh]);
+  const observed=useRef({run,state:run.state});
+  if(observed.current.run!==run)observed.current={run,state:run.state};
+  const observeState=useCallback(()=>{
+    session.observeCompletion();
+    if(observed.current.state!==run.state){observed.current.state=run.state;onSave(session);}
+  },[session,run,onSave]);
+  const interaction=useCallback(()=>{observeState();refresh();},[observeState,refresh]);
   const running=appActive&&run.state!=='paused';
   useEffect(()=>{
     const subscription=AppState.addEventListener('change',state=>{
-      if(state!=='active'){touch.cancel();if(run.state==='active')run.togglePause();}
-      setAppActive(state==='active');refresh();
+      const active=state==='active';
+      if(!active&&activeRef.current){
+        touch.cancel();if(run.state==='active')run.togglePause();observed.current.state=run.state;onInterrupted(session);
+      }
+      activeRef.current=active;setAppActive(active);refresh();
     });return()=>subscription.remove();
-  },[run,touch,refresh]);
+  },[run,touch,session,onInterrupted,refresh]);
   useEffect(()=>{
     const handler=BackHandler.addEventListener('hardwareBackPress',()=>{
-      if(run.state!=='active')return false;touch.cancel();run.togglePause();refresh();return true;
+      touch.cancel();
+      if(run.state==='active'){run.togglePause();observed.current.state=run.state;onSave(session);refresh();}
+      else onHome();
+      return true;
     });return()=>handler.remove();
-  },[run,touch,refresh]);
+  },[run,touch,session,onSave,onHome,refresh]);
   useEffect(()=>{
     if(!running)return;
     const clock=new SimulationClock();let frame=0,lastRender=-Infinity,cancelled=false;
     const tick=(now:number)=>{
-      if(cancelled)return;clock.advance(now,true,delta=>session.update(delta));
+      if(cancelled)return;clock.advance(now,true,delta=>session.update(delta));observeState();
       if(now-lastRender>=1000/30){
         tracers.sync(run.fluid.clock,1,run.fluid,{key:`${session.seed}:${session.index}`,dustSeed:session.seed^session.index},0);
         lastRender=now;refresh();
@@ -47,9 +65,11 @@ export function GameScreen(){
       frame=requestAnimationFrame(tick);
     };
     frame=requestAnimationFrame(tick);return()=>{cancelled=true;cancelAnimationFrame(frame);clock.reset();};
-  },[run,running,session,tracers,refresh]);
-  const pause=()=>{touch.cancel();run.togglePause();refresh();};
-  const advance=(id:string)=>{touch.cancel();if(session.chooseEvolution(id))refresh();};
+  },[run,running,session,tracers,refresh,observeState]);
+  const changed=()=>{observed.current={run:session.current,state:session.current.state};onSave(session);refresh();};
+  const pause=()=>{touch.cancel();run.togglePause();changed();};
+  const advance=(id:string)=>{touch.cancel();if(session.chooseEvolution(id))changed();};
+  const home=()=>{touch.cancel();onHome();};
   const dish=dishForStage(run.stageIndex),spec=run.harvest.spec,harvest=run.harvest,boss=run.boss();
   const lesson=run.lessonActive()?run.lesson.instruction(run):undefined,event=harvest.events.sample(run);
   const growth=run.growthSlot();
@@ -59,6 +79,7 @@ export function GameScreen(){
       <View><Text style={styles.brand}>PETRIVERSE</Text><Text style={styles.subtitle}>{dish.name} · Encounter {session.index+1} of {session.route.length}</Text></View>
       {(run.state==='active'||run.state==='paused')&&<Button label={run.state==='paused'?'Resume':'Pause'} onPress={pause} quiet/>}
     </View>
+    {saveError!==''&&<View style={styles.saveWarning}><Text accessibilityLiveRegion="polite" style={styles.saveError}>{saveError}</Text><Button label="Try saving again" onPress={onRetrySave} disabled={busy} quiet/></View>}
     <View style={styles.main}>
       <ScrollView style={styles.sidebar} contentContainerStyle={styles.sideContent}>
         <Text style={styles.encounterName}>{spec.name}</Text>
@@ -91,23 +112,24 @@ export function GameScreen(){
             {growth>=0&&<>
               <Text style={styles.body}>A new organelle is growing. Choose how it helps your colony.</Text>
               <View style={styles.row}>
-                <Button label="Guard: blocks one hunter" onPress={()=>{run.chooseGrowthRole('guard');refresh();}}/>
-                <Button label="Feeder: rewards large meals" onPress={()=>{run.chooseGrowthRole('feeder');refresh();}}/>
+                <Button label="Guard: blocks one hunter" onPress={()=>{run.chooseGrowthRole('guard');changed();}}/>
+                <Button label="Feeder: rewards large meals" onPress={()=>{run.chooseGrowthRole('feeder');changed();}}/>
               </View>
             </>}
             {growth<0&&run.stageIndex===2&&run.growthRoles[1]&&<Text style={styles.detail}>New organelle: {run.growthRoles[1]}</Text>}
             {growth<0&&run.stageIndex===8&&run.growthRoles[5]&&<Text style={styles.detail}>New organelle: {run.growthRoles[5]}</Text>}
-            <Button label={session.index===0?'Begin the journey':'Enter the water'} onPress={()=>{session.begin();refresh();}}/>
+            <Button label={session.index===0?'Begin the journey':'Enter the water'} onPress={()=>{session.begin();changed();}}/>
             {session.index===0&&<Text style={styles.detail}>Drag between blue cells to draw a loop. Return to the first cell and release.</Text>}
           </>}
           {run.state==='paused'&&<>
             <Text style={styles.title}>The pond can wait.</Text><Text style={styles.body}>Your colony is resting.</Text>
+            {recoveryNotice!==''&&<Text style={styles.notice}>{recoveryNotice}</Text>}
             <Button label="Resume" onPress={pause}/>
             <Text style={styles.credits}>Petriverse by Marco van Hylckama Vlieg{`\n`}Mobile adaptation by Henri Hubert / AI Engineer Hub{`\n`}Original game and artwork: CC BY-NC 4.0</Text>
           </>}
           {run.state==='loss'&&<>
             <Text style={styles.title}>{harvest.lossTitle}</Text><Text style={styles.body}>{harvest.lossReason}</Text>
-            <Button label="Retry this encounter" onPress={()=>{touch.cancel();session.retry();refresh();}}/>
+            <Button label="Retry this encounter" onPress={()=>{touch.cancel();session.retry();changed();}}/>
             <Text style={styles.detail}>Return with the colony and food you brought into this encounter.</Text>
           </>}
           {run.state==='complete'&&<>
@@ -126,8 +148,11 @@ export function GameScreen(){
                 {run.integrity<run.maxIntegrity&&<Button label="Heal up to 2 · 6 food" disabled={run.biomass<6} onPress={()=>advance('repair')} quiet/>}
               </View>
             </>}
-            {session.finished&&<Button label="Begin a new journey" onPress={()=>{touch.cancel();setSession(new JourneySession(Date.now()>>>0));}}/>}
+            {session.finished&&<Button label="Begin a new journey" onPress={()=>{touch.cancel();onNewJourney();}} disabled={busy}/>}
           </>}
+          <View style={styles.row}><Button label="Return to title" onPress={home} disabled={busy} quiet/></View>
+          <Text accessibilityLiveRegion="polite" style={styles.detail}>{saveStatus}</Text>
+          {profileNotice!==''&&<><Text style={styles.notice}>{profileNotice}</Text><Button label="Retry profile" onPress={onRetryProfile} disabled={busy} quiet/></>}
         </ScrollView>
       </View>}
     </View>
@@ -143,4 +168,5 @@ const styles=StyleSheet.create({
   eyebrow:{fontSize:10,color:'#9ac8c2',letterSpacing:2},title:{color:'#e3eee4',fontSize:24,fontWeight:'500'},body:{color:'#c0d3ce',fontSize:13,lineHeight:19},
   button:{minHeight:44,paddingHorizontal:16,paddingVertical:12,alignItems:'center',justifyContent:'center',backgroundColor:'#325f5b',borderRadius:10,borderWidth:1,borderColor:'#59857b'},quietButton:{backgroundColor:'#112b30',borderColor:'#34585e'},buttonText:{color:'#e0eee0',fontSize:12,fontWeight:'600'},dim:{opacity:0.45},
   row:{flexDirection:'row',flexWrap:'wrap',gap:10},offers:{flexDirection:'row',flexWrap:'wrap',gap:10},offer:{flexGrow:1,flexBasis:165,gap:8,backgroundColor:'#102e34',padding:12,borderRadius:10},credits:{color:'#87a5a5',fontSize:11,lineHeight:17,marginTop:12},
+  saveWarning:{flexDirection:'row',alignItems:'center',gap:10,paddingHorizontal:18,paddingBottom:6},saveError:{flex:1,color:'#f0c1ac',fontSize:11,lineHeight:16},
 });
