@@ -17,7 +17,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/creature_cinema.gd` | `src/cinema/creatureCinema.ts` | Pending |
 | `scripts/creature_film_stage.gd` | `src/cinema/creatureFilmStage.ts` | Pending |
 | `scripts/creature_forms.gd` | `src/campaign/creatureForms.ts` | Pending |
-| `scripts/cyst_nudge.gd` | `src/ecology/cystNudge.ts` | Pending |
+| `scripts/cyst_nudge.gd` | `src/ecology/cystNudge.ts` | Implemented / source reviewed; new regression tests not executed; native gestures pending |
 | `scripts/dish_labels.gd` | `src/components/dishLabels.ts` | Pending |
 | `scripts/drifter.gd` | `src/ecology/drifter.ts` | Implemented / local behavior tests passed; full ecosystem integration pending |
 | `scripts/ecology_enemy.gd` | `src/ecology/ecologyEnemy.ts` | Implemented / local movement tests passed; destination assignment and food web pending |
@@ -39,7 +39,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/input_controller.gd` | `src/geometry/inputController.ts` | Implemented / local regression tests passed; upstream integration pending |
 | `scripts/journey_boss.gd` | `src/campaign/journeyBoss.ts` | Pending |
 | `scripts/journey_discoveries.gd` | `src/campaign/journeyDiscoveries.ts` | Pending |
-| `scripts/journey_ecology.gd` | `src/ecology/journeyEcology.ts` | Pending |
+| `scripts/journey_ecology.gd` | `src/ecology/foodWeb.ts (partial)` | Partial / predator-prey and shoaling subset ported; waves, gates, competitors, cradle and run integration pending |
 | `scripts/journey_guidance.gd` | `src/components/journeyGuidance.ts` | Pending |
 | `scripts/journey_habitats.gd` | `src/campaign/journeyHabitats.ts` | Pending |
 | `scripts/journey_harvest.gd` | `src/campaign/journeyHarvest.ts` | Pending |
@@ -62,7 +62,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/mother_damage.gd` | `src/engine/motherDamage.ts` | Pending |
 | `scripts/mutation_card.gd` | `src/components/mutationCard.ts` | Pending |
 | `scripts/mutations.gd` | `src/evolution/mutations.ts` | Partial / captureRules.ts recovery, damage and limits tested; catalogue and offers pending |
-| `scripts/organism_arrival.gd` | `src/ecology/organismArrival.ts` | Pending |
+| `scripts/organism_arrival.gd` | `src/ecology/organismArrival.ts` | Implemented / source reviewed; new regression tests not executed |
 | `scripts/phage_cluster.gd` | `src/ecology/phageCluster.ts` | Implemented / local attachment and lifetime integration pending full journey |
 | `scripts/phage_system.gd` | `src/ecology/phageSystem.ts` | Implemented / local infection, rupture, salvage and snapshot tests passed; full journey, nudge and save validation pending |
 | `scripts/phage_visual.gd` | `src/rendering/phageVisual.ts` | Pending |
@@ -116,7 +116,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `tests/creature_cinema_integration.gd` | `tests/creatureCinemaIntegration.test.ts` | Pending |
 | `tests/creature_cinema_visual.gd` | `tests/creatureCinemaVisual.test.ts` | Pending |
 | `tests/creature_films.gd` | `tests/creatureFilms.test.ts` | Pending |
-| `tests/cyst_nudge.gd` | `tests/cystNudge.test.ts` | Pending |
+| `tests/cyst_nudge.gd` | `tests/nudgeFoodWeb.test.ts (partial)` | Partial / module regression tests written, not executed; original run and UI assertions pending |
 | `tests/discovery_journal.gd` | `tests/discoveryJournal.test.ts` | Pending |
 | `tests/dish_labels.gd` | `tests/dishLabels.test.ts` | Pending |
 | `tests/drift_review.gd` | `tests/driftReview.test.ts` | Pending |
@@ -131,7 +131,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `tests/feel_reel.gd` | `tests/feelReel.test.ts` | Pending |
 | `tests/finale_pacing.gd` | `tests/finalePacing.test.ts` | Pending |
 | `tests/fluid_dynamics.gd` | `tests/fluidDynamics.test.ts` | Partial / fluidCapture.test.ts and livingPresentation.test.ts cover CPU field, board and constant-flow tracer assertions; actual journey and native tracer integration pending |
-| `tests/food_web.gd` | `tests/foodWeb.test.ts` | Pending |
+| `tests/food_web.gd` | `tests/nudgeFoodWeb.test.ts (partial)` | Partial / module regression tests written, not executed; full journey and save assertions pending |
 | `tests/frame_sample.gd` | `tests/frameSample.test.ts` | Pending |
 | `tests/free_polygons.gd` | `tests/freePolygons.test.ts` | Partially covered by tests/boardInput.test.ts; original run/GUI assertions pending |
 | `tests/full_run.gd` | `tests/fullRun.test.ts` | Pending |
