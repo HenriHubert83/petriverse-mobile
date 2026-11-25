@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "pn5WPpE0YmayOLV3S24X4"
+uri = "file://.local/artifacts/expo-go-qr.html"
+type = "html"
+title = "Current Expo Go QR code"
+description = "Scan with the iPhone Camera and open the Expo Go link. Current URL: exps://m3p2fzm-anonymous-8080.exp.direct"
+logical_id = "8c3177ec-50b5-4f4f-8a5f-16b50ab016df"
+content_hash = "sha256:5db0b237b1d8e4984e505620290eaa3ea10f97ee413600947a5434fc75b61449"
+size = 9152
+mtime_ms = 1795630252673
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:bbf489ad-0663-4492-8cca-fd9b3f5c4417/8c3177ec-50b5-4f4f-8a5f-16b50ab016df/fd3c8be9-4e80-4d98-b295-f2ed4aa83592"
+storage_version_token = "1795630263372120"
+content_type = "text/html"
