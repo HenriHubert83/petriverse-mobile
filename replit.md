@@ -72,5 +72,7 @@ Pull the latest development branch while preserving local changes, restart the
 existing Expo mobile workflow and use its current QR code. Follow
 [the updated phone checklist](docs/SAVES.md), especially rescue/save/reopen,
 pinch/pan, Fit, finger release, interruption and advancement to the next
-encounter. This updated native behavior still needs the phone check.
+encounter. On 2026-11-26 Henri reported that he likes the updated layout and
+zoom/pan and that saving seems fine on iPhone. Keep the checklist for focused
+interruption/recovery regressions and additional devices.
 No new native dependency or package/lockfile change is required.
