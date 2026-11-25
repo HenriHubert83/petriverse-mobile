@@ -61,7 +61,16 @@ The four setup commits were pushed to `phase-02-foundation`, ending at
 A subsequent save/menu increment adds local current-encounter autosaving,
 Continue/New Journey, profile records and backup recovery. All 129 CPU test
 groups and full TypeScript checking pass, and iOS/Android Hermes exports
-completed. These new storage/menu changes still need a physical-device test.
-Pull the latest development branch while preserving local changes, reload Expo
-Go and follow [the save/Continue phone checklist](docs/SAVES.md). No new native
-dependency or package/lockfile change is required for this increment.
+completed. Henri then reported that this version generally works on iPhone, but found a
+spore/profile saving error and a warning banner that shrank the dish.
+
+The current update fixes that error, adds independent encounter checkpoint
+recovery, gives the dish the full available height and adds two-finger zoom/pan
+with +, minus and Fit controls. Save warnings cannot resize the playfield.
+All 148 CPU groups, full TypeScript checking and both Hermes exports pass.
+Pull the latest development branch while preserving local changes, restart the
+existing Expo mobile workflow and use its current QR code. Follow
+[the updated phone checklist](docs/SAVES.md), especially rescue/save/reopen,
+pinch/pan, Fit, finger release, interruption and advancement to the next
+encounter. This updated native behavior still needs the phone check.
+No new native dependency or package/lockfile change is required.

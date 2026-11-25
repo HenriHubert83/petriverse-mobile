@@ -1,11 +1,11 @@
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
-import {PanResponder,StyleSheet,Text,View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
+import {PanResponder,Pressable,StyleSheet,Text,View} from 'react-native';
+import type {GestureResponderEvent,NativeTouchEvent} from 'react-native';
 import {Canvas,Circle,Group,Image,Path,RadialGradient,Shader,Skia,useImage,vec} from '@shopify/react-native-skia';
 import type {SkImage} from '@shopify/react-native-skia';
 import type {EncounterSimulation} from '../engine/encounterSimulation';
 import type {TouchController} from '../mobile/touchController';
-import {toScreen} from '../mobile/boardViewport';
+import {MAX_BOARD_ZOOM,toScreen} from '../mobile/boardViewport';
 import type {Point} from '../geometry/loopGeometry';
 import {Amoeba} from '../ecology/amoeba';
 import {EcologyEnemy} from '../ecology/ecologyEnemy';
@@ -33,7 +33,7 @@ function Sprite({kind,at,images,opacity=1,angle=0,width}:{kind:string;at:Point;i
   </Group>;
 }
 export function EncounterView({run,touch,tracers,onInteraction}:{run:EncounterSimulation;touch:TouchController;tracers:WaterTracers;onInteraction:()=>void}){
-  const [size,setSize]=useState({width:0,height:0}),[images,setImages]=useState<Images>({});
+  const [size,setSize]=useState({width:0,height:0}),[,refreshCamera]=useState(0),[images,setImages]=useState<Images>({});
   const loaded=useCallback((name:TextureKey,image:SkImage|null)=>setImages(previous=>{
     if((previous[name]??null)===image)return previous;const next={...previous};if(image)next[name]=image;else delete next[name];return next;
   }),[]);
@@ -41,18 +41,29 @@ export function EncounterView({run,touch,tracers,onInteraction}:{run:EncounterSi
   const wanted=[...new Set<TextureKey>(['cell',mother,...run.enemies.map(b=>textureKey(b.kind)),...run.phages.clusters.map(()=> 'phage' as const),...run.clots.flatMap(c=>c.preyKinds.map(textureKey))])];
   const effect=useMemo(()=>{try{return Skia.RuntimeEffect.Make(membraneShader);}catch{return null;}},[]);
   const pan=useMemo(()=>{
-    const point=(event:GestureResponderEvent)=>({x:event.nativeEvent.locationX,y:event.nativeEvent.locationY});
+    // The touch surface has no interactive children. Fix its page-space origin
+    // at grant, then map every finger from page coordinates into that one basis.
+    // A second finger's native locationX can otherwise refer to a different target.
+    let origin={x:0,y:0};
+    const points=(touches:readonly NativeTouchEvent[])=>touches.map(p=>({id:p.identifier,x:p.pageX-origin.x,y:p.pageY-origin.y}));
+    const ended=(event:GestureResponderEvent)=>{touch.endTouches(points(event.nativeEvent.touches),points(event.nativeEvent.changedTouches));onInteraction();};
     return PanResponder.create({
       onStartShouldSetPanResponder:()=>run.state==='active',onMoveShouldSetPanResponder:()=>false,
-      onPanResponderGrant:e=>{touch.begin(e.nativeEvent.identifier,point(e),e.nativeEvent.touches.length);onInteraction();},
-      onPanResponderStart:e=>{if(e.nativeEvent.touches.length!==1){touch.cancel();onInteraction();}},
-      onPanResponderMove:e=>{touch.move(e.nativeEvent.identifier,point(e),e.nativeEvent.touches.length);onInteraction();},
-      onPanResponderRelease:e=>{touch.end(e.nativeEvent.identifier,point(e));onInteraction();},
+      onPanResponderGrant:e=>{
+        origin={x:e.nativeEvent.pageX-e.nativeEvent.locationX,y:e.nativeEvent.pageY-e.nativeEvent.locationY};
+        touch.startTouches(points(e.nativeEvent.touches),true);onInteraction();
+      },
+      onPanResponderStart:e=>{touch.startTouches(points(e.nativeEvent.touches));onInteraction();},
+      onPanResponderMove:e=>{touch.moveTouches(points(e.nativeEvent.touches));onInteraction();},
+      onPanResponderEnd:ended,onPanResponderRelease:ended,
       onPanResponderTerminationRequest:()=>true,onPanResponderTerminate:()=>{touch.cancel();onInteraction();},
       onShouldBlockNativeResponder:()=>true,
     });
   },[touch,run,onInteraction]);
-  useEffect(()=>{touch.resize(size.width,size.height);return()=>touch.cancel();},[touch,size.width,size.height]);
+  useEffect(()=>{
+    touch.resize(size.width,size.height);refreshCamera(value=>value+1);
+    return()=>touch.cancel();
+  },[touch,size.width,size.height]);
   const view=touch.view,center=run.board.center,radius=run.board.dishRadius;
   const clip=useMemo(()=>Skia.PathBuilder.Make().addCircle(center.x,center.y,radius).detach(),[center.x,center.y,radius]);
   const selected=new Set(run.selection.path),preview=new Set(run.preview());
@@ -60,9 +71,10 @@ export function EncounterView({run,touch,tracers,onInteraction}:{run:EncounterSi
   const selectionPoints=run.selection.path.map(i=>run.board.anchors[i]);
   const event=run.harvest.events.sample(run),nudge=run.nudge.target(run);
   const lessonNodes=run.lessonActive()&&[0,2].includes(run.lesson.stepIndex)?run.lesson.route():[];
-  return <View style={styles.view} {...pan.panHandlers} onLayout={e=>{
-    const {width,height}=e.nativeEvent.layout;touch.resize(width,height);setSize({width,height});
-  }} accessibilityLabel="Petri dish. Drag through blue cells and return to the first cell to capture a loop.">
+  return <View style={styles.view}>
+    <View style={styles.touchSurface} {...pan.panHandlers} onLayout={e=>{
+      const {width,height}=e.nativeEvent.layout;touch.resize(width,height);setSize({width,height});
+    }} accessibilityLabel="Petri dish. Use one finger to capture loops. Pinch with two fingers to zoom, or drag with two fingers to move the view.">
     {wanted.map(name=><TextureLoader key={name} name={name} loaded={loaded}/>)}
     {view.scale>0&&<Canvas pointerEvents="none" style={StyleSheet.absoluteFill}>
       <Group transform={[{translateX:view.x},{translateY:view.y}]}><Group transform={[{scale:view.scale}]}>
@@ -120,6 +132,19 @@ export function EncounterView({run,touch,tracers,onInteraction}:{run:EncounterSi
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       {lessonNodes.map((id,i)=>{const at=toScreen(run.board.anchors[id],view);return <Text key={id} style={[styles.number,{left:at.x-10,top:at.y-10}]}>{i+1}</Text>;})}
     </View>
+    </View>
+    <View style={styles.cameraControls}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Zoom in on the petri dish" disabled={touch.zoom>=MAX_BOARD_ZOOM-0.001}
+        accessibilityState={{disabled:touch.zoom>=MAX_BOARD_ZOOM-0.001}} onPress={()=>{touch.zoomBy(1.3);onInteraction();}}
+        style={({pressed})=>[styles.cameraButton,(pressed||touch.zoom>=MAX_BOARD_ZOOM-0.001)&&styles.dim]}><Text style={styles.zoomText}>+</Text></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel="Zoom out on the petri dish" disabled={touch.zoom<=1.001}
+        accessibilityState={{disabled:touch.zoom<=1.001}} onPress={()=>{touch.zoomBy(1/1.3);onInteraction();}}
+        style={({pressed})=>[styles.cameraButton,(pressed||touch.zoom<=1.001)&&styles.dim]}><Text style={styles.zoomText}>−</Text></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel="Fit the whole petri dish" onPress={()=>{touch.resetView();onInteraction();}}
+        style={({pressed})=>[styles.cameraButton,pressed&&styles.dim]}><Text style={styles.fitText}>Fit</Text></Pressable>
+    </View>
   </View>;
 }
-const styles=StyleSheet.create({view:{flex:1,minWidth:0},number:{position:'absolute',width:20,height:20,borderRadius:10,backgroundColor:'#e2edda',color:'#153438',fontWeight:'700',fontSize:12,lineHeight:20,textAlign:'center'}});
+const styles=StyleSheet.create({view:{flex:1,minWidth:0,overflow:'hidden'},
+  touchSurface:{position:'absolute',left:0,top:0,bottom:0,right:52,overflow:'hidden'},cameraControls:{position:'absolute',right:4,top:4,gap:4},cameraButton:{width:44,height:44,borderRadius:10,backgroundColor:'#112b30e8',borderColor:'#34585e',borderWidth:1,alignItems:'center',justifyContent:'center'},
+  zoomText:{fontSize:24,color:'#e0eee0',lineHeight:28},fitText:{fontSize:12,fontWeight:'600',color:'#e0eee0'},dim:{opacity:0.45},number:{position:'absolute',width:20,height:20,borderRadius:10,backgroundColor:'#e2edda',color:'#153438',fontWeight:'700',fontSize:12,lineHeight:20,textAlign:'center'}});

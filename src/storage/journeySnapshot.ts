@@ -119,7 +119,7 @@ export function captureEncounter(run:EncounterSimulation){
 export type EncounterSnapshot=ReturnType<typeof captureEncounter>;
 export interface JourneySnapshot {
   format:'petriverse-mobile-journey';version:1;seed:number;route:JourneySpec[];index:number;retries:number;finished:boolean;
-  offers:string[];handledCompletion:number;rng:RandomSnapshot;checkpoint:{colony:ColonyState;rng:RandomSnapshot};encounter:EncounterSnapshot;
+  offers:string[];handledCompletion:number;rng:RandomSnapshot;checkpoint:{colony:ColonyState;rng:RandomSnapshot;retryHealing?:boolean};encounter:EncounterSnapshot;
 }
 export function readJourneyHeader(value:unknown){
   const p=object(value,'journey');
@@ -132,7 +132,8 @@ export function readJourneyHeader(value:unknown){
   const checkpoint=object(p.checkpoint,'retry checkpoint'),colony=readColony(checkpoint.colony),rng=SeededRandom.restore(p.rng),retryRng=SeededRandom.restore(checkpoint.rng);
   if(colony.capacity>capacityForStage(route[index].stage))throw Error('Invalid retry colony capacity');
   if(finished&&index!==route.length-1)throw Error('Invalid completed journey');
-  return {seed,route,index,retries,finished,offers,handledCompletion,colony,rng,retryRng,encounter:p.encounter};
+  const retryHealing=checkpoint.retryHealing===undefined?undefined:bool(checkpoint.retryHealing);
+  return {seed,route,index,retries,finished,offers,handledCompletion,colony,rng,retryRng,retryHealing,encounter:p.encounter};
 }
 export function restoreEncounter(value:unknown,spec:JourneySpec,seed:number,index:number,rng:SeededRandom,pauseOnResume=true):EncounterSimulation{
   const p=object(value,'encounter'),r=object(p.run,'encounter state'),capacity=capacityForStage(spec.stage);

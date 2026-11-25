@@ -26,12 +26,12 @@ export class JourneySession {
   index=0;retries=0;finished=false;offers:string[]=[];
   private handledCompletion=-1;
   private rng:SeededRandom;
-  private checkpoint:{colony:ColonyState;rng:SeededRandom};
+  private checkpoint:{colony:ColonyState;rng:SeededRandom;retryHealing?:boolean};
   constructor(readonly seed:number){
     this.route=makeRoute(seed);this.rng=new SeededRandom(seed);
     const initial:ColonyState={integrity:3,capacity:3,biomass:0,score:0,mutations:[],growthRoles:{},lost:Array(7).fill(false),
       totalFood:0,totalRescued:0,kills:0,loopsDrawn:0,bestCapture:0,rescuedSpecimens:[],masteryAwards:[],seenSpecies:[]};
-    this.checkpoint={colony:copyState(initial),rng:this.rng.clone()};this.current=this.createEncounter(initial);
+    this.checkpoint={colony:copyState(initial),rng:this.rng.clone(),retryHealing:false};this.current=this.createEncounter(initial);
   }
   private createEncounter(colony:ColonyState):EncounterSimulation{
     const spec=this.route[this.index],capacity=capacityForStage(spec.stage),integrity=Math.min(capacity,colony.integrity+Math.max(0,capacity-colony.capacity));
@@ -77,23 +77,37 @@ export class JourneySession {
       if(!this.offers.includes(id)||!mutationDefinition(id)||run.mutations.includes(id)||run.biomass<this.evolutionCost())return false;
       next.biomass-=this.evolutionCost();next.mutations.push(id);
     }
-    this.index++;this.offers=[];this.checkpoint={colony:copyState(next),rng:this.rng.clone()};this.current=this.createEncounter(next);return true;
+    this.index++;this.offers=[];this.checkpoint={colony:copyState(next),rng:this.rng.clone(),retryHealing:false};this.current=this.createEncounter(next);return true;
   }
   retry():boolean{
     if(this.current.state!=='loss')return false;
     this.retries++;this.rng=this.checkpoint.rng.clone();this.current=this.createEncounter(copyState(this.checkpoint.colony));
-    this.current.heal(Math.max(0,3-this.current.integrity));this.offers=[];return true;
+    this.current.heal(Math.max(0,3-this.current.integrity));this.checkpoint.retryHealing=true;this.offers=[];return true;
+  }
+  // Recreate the entry without awarding anything or invoking the retry action.
+  // Results are already stable checkpoints and must retain their offers/ending.
+  entrySnapshot():JourneySnapshot{
+    if(['brief','complete','loss'].includes(this.current.state))return this.snapshot();
+    const entry=new JourneySession(this.seed);
+    entry.index=this.index;entry.retries=this.retries;entry.handledCompletion=this.index-1;
+    entry.rng=this.checkpoint.rng.clone();
+    const colony=copyState(this.checkpoint.colony);colony.growthRoles={...this.current.growthRoles};
+    entry.checkpoint={colony:copyState(colony),rng:entry.rng.clone(),retryHealing:this.checkpoint.retryHealing};
+    entry.current=entry.createEncounter(colony);
+    if(this.checkpoint.retryHealing)entry.current.heal(Math.max(0,3-entry.current.integrity));
+    return entry.snapshot();
   }
   snapshot():JourneySnapshot{
     this.observeCompletion();
     return {format:'petriverse-mobile-journey',version:JOURNEY_SAVE_VERSION,seed:this.seed,route:this.route.map(s=>({...s,...(s.families?{families:[...s.families]}:{})})),
       index:this.index,retries:this.retries,finished:this.finished,offers:[...this.offers],handledCompletion:this.handledCompletion,
-      rng:this.rng.saveState(),checkpoint:{colony:copyState(this.checkpoint.colony),rng:this.checkpoint.rng.saveState()},encounter:captureEncounter(this.current)};
+      rng:this.rng.saveState(),checkpoint:{colony:copyState(this.checkpoint.colony),rng:this.checkpoint.rng.saveState(),
+        ...(this.checkpoint.retryHealing===undefined?{}:{retryHealing:this.checkpoint.retryHealing})},encounter:captureEncounter(this.current)};
   }
   static restore(value:unknown,options:{pauseOnResume?:boolean}={}):JourneySession{
     const data=readJourneyHeader(value),result=new JourneySession(data.seed);
     result.index=data.index;result.retries=data.retries;result.finished=data.finished;result.offers=data.offers;result.handledCompletion=data.handledCompletion;
-    result.rng=data.rng;result.checkpoint={colony:data.colony,rng:data.retryRng};
+    result.rng=data.rng;result.checkpoint={colony:data.colony,rng:data.retryRng,retryHealing:data.retryHealing};
     result.current=restoreEncounter(data.encounter,data.route[data.index],data.seed,data.index,data.rng,options.pauseOnResume??true);
     const complete=result.current.state==='complete';
     if((complete&&data.handledCompletion!==data.index)||(!complete&&data.handledCompletion===data.index)||

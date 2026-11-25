@@ -1,7 +1,7 @@
 import type {SaveLoadResult} from '../storage/saveRepository';
 
 export const AUTOSAVE_INTERVAL_MS=8000;
-interface Repository<T>{load():Promise<SaveLoadResult<T>>;save(value:T):Promise<void>}
+interface Repository<T>{load():Promise<SaveLoadResult<T>>;save(value:T):Promise<void>;replace?:(value:T)=>Promise<void>}
 export interface SaveCoordinatorOptions<Session,Snapshot,Profile>{
   journey:Repository<Snapshot>;profile:Repository<Profile>;
   createSession:()=>Session;capture:(session:Session)=>Snapshot;restore:(snapshot:Snapshot)=>Session;
@@ -60,7 +60,9 @@ export class SaveCoordinator<Session,Snapshot,Profile>{
       try{
         this.session=this.options.restore(journey.value);
         this.options.pause(this.session);
-        if(journey.status==='recovered')this.notice='Recovered your previous save from backup. A little recent progress may be missing.';
+        if(journey.status==='recovered')this.notice=journey.recovery==='checkpoint'?
+          'Recovered a safe encounter checkpoint. Progress since that checkpoint may be missing.':
+          'Recovered your previous save from backup. A little recent progress may be missing.';
       }catch(error){
         this.loadStatus=error instanceof Error&&error.name==='UnsupportedSaveVersionError'?'unsupported':'corrupt';
         this.error=this.loadStatus==='unsupported'?'This journey needs a newer version of Petriverse. Your save has been kept unchanged.':'Your journey could not be restored. Its saved data has been kept unchanged.';
@@ -114,8 +116,8 @@ export class SaveCoordinator<Session,Snapshot,Profile>{
     catch{this.busy=false;this.error='A new journey could not be prepared. Your existing journey is unchanged.';this.notify();return false;}
     return this.enqueue(async()=>{
       try{
-        if(!this.attached)return false;
-        await this.options.journey.save(snapshot);
+        if(!this.attached||['error','unsupported'].includes(this.loadStatus))return false;
+        await (this.options.journey.replace?.(snapshot)??this.options.journey.save(snapshot));
         // Publish the new session only after the journey write succeeds.
         this.session=candidate;this.screen='game';this.loadStatus='ready';this.savedAt=Date.now();this.notice='';
         if(this.profileWritable&&this.attached){
@@ -123,7 +125,8 @@ export class SaveCoordinator<Session,Snapshot,Profile>{
           catch{this.profileError='Your new journey was saved, but your profile could not be updated. Please try again.';}
         }
         return true;
-      }catch{
+      }catch(error){
+        if(this.unconfirmedCommit(error))return false;
         this.error=this.session?'The new journey could not be saved. Your previous journey is still available. Please try again.':'The new journey could not be saved. Please try again.';
         return false;
       }finally{this.busy=false;this.notify();}
@@ -131,23 +134,35 @@ export class SaveCoordinator<Session,Snapshot,Profile>{
   }
   save(session:Session|undefined=this.session):Promise<boolean>{
     if(!session||session!==this.session||!this.loaded||this.busy||['error','unsupported'].includes(this.loadStatus))return Promise.resolve(false);
-    let snapshot:Snapshot,profile=this.profile;const saveProfile=this.profileWritable;
+    let snapshot:Snapshot,profile=this.profile,saveProfile=this.profileWritable,profileObservationError='';
     try{
       snapshot=this.options.capture(session);
-      if(this.profileWritable){profile=this.options.observeProfile(this.profile,session);this.profile=profile;}
     }catch{this.error='Your progress could not be prepared for saving. Please try again.';this.notify();return Promise.resolve(false);}
+    if(this.profileWritable){
+      try{profile=this.options.observeProfile(this.profile,session);this.profile=profile;}
+      catch{saveProfile=false;profileObservationError='Your profile could not be updated. Journey saving is still available.';this.profileError=profileObservationError;}
+    }
     return this.enqueue(async()=>{
       try{
-        if(!this.attached)return false;
+        if(!this.attached||session!==this.session||['error','unsupported'].includes(this.loadStatus))return false;
         await this.options.journey.save(snapshot);
         this.loadStatus='ready';this.savedAt=Date.now();this.error='';
         if(saveProfile&&this.attached)await this.saveProfile(profile);
+        else if(profileObservationError)this.profileError=profileObservationError;
         return true;
-      }catch{
+      }catch(error){
+        if(this.unconfirmedCommit(error))return false;
         this.error='Your latest progress could not be saved. Keep the app open and try again.';
         return false;
       }
     });
+  }
+  private unconfirmedCommit(error:unknown):boolean{
+    if(!(error instanceof Error)||error.name!=='SaveCommitUncertainError')return false;
+    // A storage readback failure cannot tell us whether the pointer committed.
+    // Reload before permitting old in-memory state to replace durable progress.
+    this.loadStatus='error';this.session=undefined;this.screen='menu';
+    this.error='Saving could not be confirmed. Retry loading to check your saved journey.';return true;
   }
   private async saveProfile(profile:Profile):Promise<void>{
     try{await this.options.profile.save(profile);this.profileError='';}

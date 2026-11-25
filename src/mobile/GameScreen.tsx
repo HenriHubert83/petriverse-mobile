@@ -21,7 +21,7 @@ interface GameScreenProps{
 }
 export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onRetrySave,onRetryProfile,
   saveStatus,saveError,profileNotice,recoveryNotice,busy}:GameScreenProps){
-  const [,setRevision]=useState(0),[appActive,setAppActive]=useState(AppState.currentState!=='background'&&AppState.currentState!=='inactive');
+  const [,setRevision]=useState(0),[width,setWidth]=useState(0),[appActive,setAppActive]=useState(AppState.currentState!=='background'&&AppState.currentState!=='inactive');
   const activeRef=useRef(appActive);
   const refresh=useCallback(()=>setRevision(v=>v+1),[]);
   const run=session.current,touch=useMemo(()=>new TouchController(run),[run]);
@@ -74,35 +74,46 @@ export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onR
   const lesson=run.lessonActive()?run.lesson.instruction(run):undefined,event=harvest.events.sample(run);
   const growth=run.growthSlot();
   const progressTarget=spec.mode==='feed'?(harvest.hunterQuota()||spec.food):spec.target;
-  return <View style={styles.root}>
-    <View style={styles.header}>
-      <View><Text style={styles.brand}>PETRIVERSE</Text><Text style={styles.subtitle}>{dish.name} · Encounter {session.index+1} of {session.route.length}</Text></View>
-      {(run.state==='active'||run.state==='paused')&&<Button label={run.state==='paused'?'Resume':'Pause'} onPress={pause} quiet/>}
-    </View>
-    {saveError!==''&&<View style={styles.saveWarning}><Text accessibilityLiveRegion="polite" style={styles.saveError}>{saveError}</Text><Button label="Try saving again" onPress={onRetrySave} disabled={busy} quiet/></View>}
+  const saveNeedsAttention=saveError!==''||profileNotice!=='';
+  const sidebarWidth=Math.max(160,Math.min(208,width*0.23));
+  return <View style={styles.root} onLayout={e=>setWidth(e.nativeEvent.layout.width)}>
     <View style={styles.main}>
-      <ScrollView style={styles.sidebar} contentContainerStyle={styles.sideContent}>
-        <Text style={styles.encounterName}>{spec.name}</Text>
-        <Text style={styles.label}>MOTHER</Text><Text style={styles.value}>{run.integrity} / {run.maxIntegrity}</Text>
-        <Text style={styles.detail}>{run.growthActive('guard')>0?`${Math.max(0,run.growthActive('guard')-run.guardianSpent)} guard ready`:dish.subtitle}</Text>
-        <Text style={styles.label}>{spec.mode==='boss'?'FOOD FOR A PULSE':'FOOD GATHERED'}</Text>
-        <Text style={styles.value}>{harvest.nourishment} / {spec.mode==='boss'?3:spec.food}</Text>
-        {spec.mode!=='feed'||harvest.hunterQuota()>0?<Text style={styles.detail}>{harvest.objectiveCount()} / {progressTarget} {harvest.objectiveLabel()}</Text>:null}
-        <Text style={styles.detail}>{lesson?'Take your time':`${timeLeft(harvest.deadline()-run.stageElapsed)} left`}</Text>
-        <Text style={styles.label}>FOOD SAVED</Text><Text style={styles.value}>{run.biomass}</Text>
-        <Text style={styles.detail}>Score {run.score}</Text>
-        {run.mutations.length>0&&<Text style={styles.detail}>{run.mutations.map(id=>mutationDefinition(id)?.name??id).join('\n')}</Text>}
-        {boss instanceof JourneyBoss&&<Text style={styles.notice}>{boss.statusText()}</Text>}
-        <Text style={styles.label}>NUDGE</Text><Text style={styles.detail}>{run.nudge.cooldown>0?`Ready in ${Math.ceil(run.nudge.cooldown)}s`:'Drag a purple cyst aside'}</Text>
-      </ScrollView>
-      <View style={styles.play}>
-        <EncounterView run={run} touch={touch} tracers={tracers} onInteraction={interaction}/>
-        <View pointerEvents="none" style={styles.guidance}>
-          {run.state==='active'&&<>
+      <View style={[styles.sidebar,{width:sidebarWidth}]}>
+        <View style={styles.sideHeader}>
+          <Text style={styles.brand}>PETRIVERSE</Text>
+          <Text style={styles.subtitle}>{dish.name} · {session.index+1} / {session.route.length}</Text>
+          <Text style={styles.encounterName}>{spec.name}</Text>
+          <View style={styles.pauseSlot}>
+            {(run.state==='active'||run.state==='paused')&&<Pressable accessibilityRole="button"
+              accessibilityLabel={run.state==='paused'?'Resume':'Pause'}
+              accessibilityHint={saveNeedsAttention?'Save needs attention. Open the pause menu for details.':undefined}
+              onPress={pause} style={({pressed})=>[styles.pauseButton,pressed&&styles.dim]}>
+              <Text style={styles.buttonText}>{run.state==='paused'?'Resume':'Pause'}</Text>
+              {saveNeedsAttention&&<View pointerEvents="none" style={styles.saveIndicator}><Text style={styles.saveIndicatorText}>!</Text></View>}
+            </Pressable>}
+          </View>
+          <View style={styles.metrics}>
+            <View style={styles.metric}><Text style={styles.label}>MOTHER</Text><Text style={styles.value}>{run.integrity} / {run.maxIntegrity}</Text></View>
+            <View style={styles.metric}><Text style={styles.label}>{spec.mode==='boss'?'PULSE FOOD':'FOOD'}</Text><Text style={styles.value}>{harvest.nourishment} / {spec.mode==='boss'?3:spec.food}</Text></View>
+          </View>
+          {spec.mode!=='feed'||harvest.hunterQuota()>0?<Text style={styles.detail}>{harvest.objectiveCount()} / {progressTarget} {harvest.objectiveLabel()}</Text>:null}
+          <Text style={styles.timer}>{lesson?'Take your time':`${timeLeft(harvest.deadline()-run.stageElapsed)} left`}</Text>
+        </View>
+        <ScrollView style={styles.sideScroll} contentContainerStyle={styles.sideContent}>
+          {run.state==='active'&&<View style={styles.guidance}>
             <Text style={styles.guideTitle}>{run.selection.rejectionReason||lesson?.title||event?.title||harvest.ecology.pressureText(run)}</Text>
             <Text style={styles.guideDetail}>{lesson?.detail||event?.detail||(run.selection.active?'Return to your first cell, then release.':'Loop around green food. Keep purple cysts and Mother outside.')}</Text>
-          </>}
-        </View>
+          </View>}
+          <Text style={styles.detail}>{run.growthActive('guard')>0?`${Math.max(0,run.growthActive('guard')-run.guardianSpent)} guard ready`:dish.subtitle}</Text>
+          <Text style={styles.detail}>Food saved {run.biomass} · Score {run.score}</Text>
+          {run.mutations.length>0&&<Text style={styles.detail}>{run.mutations.map(id=>mutationDefinition(id)?.name??id).join('\n')}</Text>}
+          {boss instanceof JourneyBoss&&<Text style={styles.notice}>{boss.statusText()}</Text>}
+          <Text style={styles.label}>NUDGE</Text><Text style={styles.detail}>{run.nudge.cooldown>0?`Ready in ${Math.ceil(run.nudge.cooldown)}s`:'Drag a purple cyst aside'}</Text>
+          <Text style={styles.cameraHint}>Pinch to zoom. Move two fingers to look around. Fit shows the whole dish.</Text>
+        </ScrollView>
+      </View>
+      <View style={styles.play}>
+        <EncounterView run={run} touch={touch} tracers={tracers} onInteraction={interaction}/>
       </View>
       {run.state!=='active'&&<View style={styles.overlay}>
         <ScrollView style={styles.card} contentContainerStyle={styles.cardContent}>
@@ -151,7 +162,10 @@ export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onR
             {session.finished&&<Button label="Begin a new journey" onPress={()=>{touch.cancel();onNewJourney();}} disabled={busy}/>}
           </>}
           <View style={styles.row}><Button label="Return to title" onPress={home} disabled={busy} quiet/></View>
-          <Text accessibilityLiveRegion="polite" style={styles.detail}>{saveStatus}</Text>
+          {saveError!==''?<>
+            <Text accessibilityLiveRegion="polite" style={styles.saveError}>{saveError}</Text>
+            <Button label="Try saving again" onPress={onRetrySave} disabled={busy} quiet/>
+          </>:<Text accessibilityLiveRegion="polite" style={styles.detail}>{saveStatus}</Text>}
           {profileNotice!==''&&<><Text style={styles.notice}>{profileNotice}</Text><Button label="Retry profile" onPress={onRetryProfile} disabled={busy} quiet/></>}
         </ScrollView>
       </View>}
@@ -159,14 +173,17 @@ export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onR
   </View>;
 }
 const styles=StyleSheet.create({
-  root:{flex:1,backgroundColor:'#06171c'},header:{minHeight:54,paddingHorizontal:18,paddingVertical:6,flexDirection:'row',justifyContent:'space-between',alignItems:'center'},
-  brand:{color:'#e1eee4',fontSize:19,fontWeight:'600',letterSpacing:4},subtitle:{color:'#91adae',fontSize:11,marginTop:3},main:{flex:1,flexDirection:'row'},
-  sidebar:{width:156,flexGrow:0,flexShrink:0},sideContent:{paddingHorizontal:18,paddingBottom:16,gap:5},encounterName:{color:'#dceae0',fontSize:15,fontWeight:'600',marginBottom:4},
-  label:{color:'#86a5a7',fontSize:10,letterSpacing:1.2,marginTop:10},value:{color:'#c8dda4',fontSize:22,fontWeight:'500'},detail:{color:'#9bb6b4',fontSize:11,lineHeight:16},notice:{color:'#dbc899',fontSize:11,lineHeight:16,marginTop:10},
-  play:{flex:1},guidance:{minHeight:42,marginBottom:6,marginHorizontal:8,alignItems:'center',backgroundColor:'#06171cbd',borderRadius:8,padding:5},guideTitle:{color:'#d8e7d8',fontSize:12,textAlign:'center'},guideDetail:{color:'#9bb6b4',fontSize:11,textAlign:'center',marginTop:2},
+  root:{flex:1,backgroundColor:'#06171c'},main:{flex:1,flexDirection:'row'},
+  sidebar:{flexGrow:0,flexShrink:0,paddingTop:8},sideHeader:{paddingHorizontal:12,gap:4},sideScroll:{flex:1},sideContent:{paddingHorizontal:12,paddingTop:8,paddingBottom:12,gap:6},
+  brand:{color:'#e1eee4',fontSize:13,fontWeight:'600',letterSpacing:2},subtitle:{color:'#91adae',fontSize:10,lineHeight:14},encounterName:{color:'#dceae0',fontSize:15,fontWeight:'600'},
+  pauseSlot:{height:44,marginVertical:2},pauseButton:{height:44,justifyContent:'center',alignItems:'center',backgroundColor:'#112b30',borderColor:'#34585e',borderWidth:1,borderRadius:10},
+  saveIndicator:{position:'absolute',right:10,top:13,width:18,height:18,borderRadius:9,alignItems:'center',justifyContent:'center',backgroundColor:'#f0c1ac'},saveIndicatorText:{color:'#112b30',fontSize:12,lineHeight:16,fontWeight:'700'},
+  metrics:{flexDirection:'row',gap:8},metric:{flex:1},label:{color:'#86a5a7',fontSize:9,letterSpacing:1,marginTop:3},value:{color:'#c8dda4',fontSize:20,fontWeight:'500'},timer:{color:'#d8e7d8',fontSize:12,lineHeight:17,fontWeight:'500'},
+  detail:{color:'#9bb6b4',fontSize:11,lineHeight:15},notice:{color:'#dbc899',fontSize:11,lineHeight:16,marginTop:6},
+  play:{flex:1,minWidth:0},guidance:{gap:3,backgroundColor:'#10272c',borderRadius:8,padding:8},guideTitle:{color:'#d8e7d8',fontSize:12,fontWeight:'500'},guideDetail:{color:'#9bb6b4',fontSize:11,lineHeight:15},cameraHint:{color:'#87a5a5',fontSize:10,lineHeight:14,marginTop:6},
   overlay:{...StyleSheet.absoluteFill,backgroundColor:'#041015c9',alignItems:'center',justifyContent:'center',padding:10},card:{flexGrow:0,maxHeight:'100%',width:'94%',maxWidth:640,backgroundColor:'#0c242b',borderColor:'#2c5055',borderWidth:1,borderRadius:18},cardContent:{padding:20,gap:10},
   eyebrow:{fontSize:10,color:'#9ac8c2',letterSpacing:2},title:{color:'#e3eee4',fontSize:24,fontWeight:'500'},body:{color:'#c0d3ce',fontSize:13,lineHeight:19},
   button:{minHeight:44,paddingHorizontal:16,paddingVertical:12,alignItems:'center',justifyContent:'center',backgroundColor:'#325f5b',borderRadius:10,borderWidth:1,borderColor:'#59857b'},quietButton:{backgroundColor:'#112b30',borderColor:'#34585e'},buttonText:{color:'#e0eee0',fontSize:12,fontWeight:'600'},dim:{opacity:0.45},
   row:{flexDirection:'row',flexWrap:'wrap',gap:10},offers:{flexDirection:'row',flexWrap:'wrap',gap:10},offer:{flexGrow:1,flexBasis:165,gap:8,backgroundColor:'#102e34',padding:12,borderRadius:10},credits:{color:'#87a5a5',fontSize:11,lineHeight:17,marginTop:12},
-  saveWarning:{flexDirection:'row',alignItems:'center',gap:10,paddingHorizontal:18,paddingBottom:6},saveError:{flex:1,color:'#f0c1ac',fontSize:11,lineHeight:16},
+  saveError:{color:'#f0c1ac',fontSize:12,lineHeight:17},
 });

@@ -8,7 +8,7 @@ export interface KeyValueStorage {
 }
 
 export type SaveLoadResult<T> =
-  | {status:'ready'|'recovered';value:T}
+  | {status:'ready'|'recovered';value:T;recovery?:'checkpoint'}
   | {status:'empty'}
   | {status:'corrupt'|'unsupported'|'error';message:string};
 

@@ -59,3 +59,20 @@ test('retry observation cannot farm profile records or mutate already saved prof
   const again=observeJourney(profile,session);assert.equal(again.residents.length,1);assert.equal(again.victories,0);
   assert.equal(again.clearedEncounters.length,1);assert.equal(JSON.stringify(profile),frozen);
 });
+
+test('an ordinary rescued spore retains its unassigned form through profile observation and reopening',()=>{
+  const session=new JourneySession(73);complete(session);session.chooseEvolution('continue');session.begin();
+  const run=session.current,spore=run.enemies.find(body=>body.kind==='spore');
+  assert.ok(spore);assert.equal(spore.form,'');
+  const sector=(run.harvest.rotation+1)%8;
+  const capture=run.capture([8+sector,16+sector,16+(sector+1)%8]);
+  assert.equal(capture.valid,true);assert.equal(run.harvest.rescued,1);
+  const profile=observeJourney(createJourneyProfile(),session);
+  assert.equal(profile.residents.length,1);assert.equal(profile.residents[0].form,'');
+  assert.equal(profile.residents[0].token,run.rescuedSpecimens[0].token);
+  const reopened=parseJourneyProfile(JSON.parse(JSON.stringify(profile)));
+  assert.deepEqual(reopened,profile);assert.strictEqual(observeJourney(reopened,session),reopened);
+  for(const form of [null,undefined,5,{},'x'.repeat(257)]){
+    assert.throws(()=>parseJourneyProfile({...profile,residents:[{...profile.residents[0],form}]}));
+  }
+});

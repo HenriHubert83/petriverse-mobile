@@ -5,6 +5,7 @@ import {JourneySession} from '../campaign/journeySession';
 import type {JourneySnapshot} from '../campaign/journeySession';
 import {dishForStage} from '../campaign/journeyPlan';
 import {SaveRepository} from '../storage/saveRepository';
+import {JourneyRecoveryRepository} from '../storage/journeyRecoveryRepository';
 import {createJourneyProfile,observeJourney,parseJourneyProfile} from '../storage/journeyProfile';
 import type {JourneyProfile} from '../storage/journeyProfile';
 import {AUTOSAVE_INTERVAL_MS,SaveCoordinator} from './saveCoordinator';
@@ -12,9 +13,7 @@ import {GameScreen} from './GameScreen';
 
 // Keep repository queues across screen and React remounts. Native storage lives
 // outside the React tree, so a former view must not race a newly mounted view.
-const journeyStore=new SaveRepository<JourneySnapshot>(AsyncStorage,'petriverse.journey',value=>{
-  JourneySession.restore(value);return value as JourneySnapshot;
-});
+const journeyStore=new JourneyRecoveryRepository(AsyncStorage,'petriverse.journey');
 const profileStore=new SaveRepository<JourneyProfile>(AsyncStorage,'petriverse.profile',parseJourneyProfile);
 const makeCoordinator=()=>new SaveCoordinator<JourneySession,JourneySnapshot,JourneyProfile>({
   journey:journeyStore,profile:profileStore,
@@ -84,6 +83,7 @@ export function JourneyApp(){
       {help?<>
         <Text style={styles.title}>How to play</Text>
         <Text style={styles.body}>Drag between blue cells to draw a loop. Return to the first cell and release to capture what is inside.</Text>
+        <Text style={styles.body}>Use one finger to draw or nudge. Pinch with two fingers to zoom, and move both fingers to pan. Tap Fit to see the whole dish again.</Text>
         <Text style={styles.body}>Gather green food and protect Mother. Keep purple cysts and Mother outside your loops. Drag a cyst aside when your nudge is ready.</Text>
         <Text style={styles.body}>Follow each encounter’s goals. Spend saved food on adaptations or repairs between encounters.</Text>
         <Text style={styles.body}>Your journey saves automatically during play. Returning from another app pauses the pond; tap Resume when you are ready.</Text>

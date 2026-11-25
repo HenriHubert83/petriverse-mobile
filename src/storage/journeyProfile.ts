@@ -50,7 +50,9 @@ export function parseJourneyProfile(value:unknown):JourneyProfile{
   const tokens=new Set<string>();
   for(const data of list(field('residents',[]))){
     if(!plain(data))return invalid();
-    const resident:ProfileResident={token:string(data.token),form:string(data.form),
+    // Ordinary mobile spores can be rescued before a catalogue form is assigned.
+    // Keep their empty form rather than rejecting valid progress or inventing an identity.
+    const resident:ProfileResident={token:string(data.token),form:string(data.form,256,true),
       stage:number(data.stage??(legacy?0:undefined),11),encounter:number(data.encounter??(legacy?1:undefined),15),
       rare:boolean(data.rare??(legacy?false:undefined)),story:string(data.story??(legacy?'':undefined),256,true),
       arrivedAfter:number(data.arrivedAfter??(legacy?0:undefined)),welcomed:boolean(data.welcomed??(legacy?true:undefined))};

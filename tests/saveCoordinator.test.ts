@@ -24,13 +24,13 @@ class Repository<T>{
     this.stored=copy(value);this.writes.push(copy(value));
   }
 }
-function fixture(saved?:Session){
+function fixture(saved?:Session,observe?:(p:Profile,s:Session)=>Profile){
   const journey=new Repository(saved),profile=new Repository<Profile>({best:10,seen:[]});let next=100;
   const coordinator=new SaveCoordinator<Session,Session,Profile>({journey,profile,
     createSession:():Session=>({id:next++,score:0,state:'brief',selected:false,finished:false}),
     capture:(value:Session)=>copy(value),restore:(value:Session)=>copy(value),
     createProfile:():Profile=>({best:0,seen:[]}),
-    observeProfile:(p:Profile,s:Session):Profile=>({best:Math.max(p.best,s.score),seen:[...new Set([...p.seen,s.id])]}),
+    observeProfile:observe??((p:Profile,s:Session):Profile=>({best:Math.max(p.best,s.score),seen:[...new Set([...p.seen,s.id])]})),
     finished:(s:Session)=>s.finished,pause:(s:Session)=>{s.selected=false;if(s.state==='active')s.state='paused';},
   });
   return {coordinator,journey,profile};
@@ -126,4 +126,29 @@ test('detaching a former view discards queued snapshots that have not begun writ
   coordinator.session!.score=60;const queued=coordinator.save();coordinator.detach();hold.resolve();
   assert.equal(await first,true);assert.equal(await queued,false);assert.equal(journey.stored!.score,30);
   assert.equal(coordinator.saving,false);coordinator.attach();assert.equal(await coordinator.save(),true);assert.equal(journey.stored!.score,60);
+});
+
+test('profile observation failure does not block the journey or disappear behind an older profile write',async()=>{
+  const {coordinator,journey}=fixture(oldSession(),(p,s)=>{
+    if(s.score===99)throw new Error('Invalid profile value');return {...p,best:s.score};
+  });
+  await coordinator.load();const started=deferred(),hold=deferred();
+  journey.beforeWrite=async value=>{if(value.score===30){started.resolve();await hold.promise;}};
+  coordinator.session!.score=30;const first=coordinator.save();await started.promise;
+  coordinator.session!.score=99;const second=coordinator.save();hold.resolve();
+  assert.equal(await first,true);assert.equal(await second,true);
+  assert.equal(journey.stored!.score,99);assert.equal(coordinator.error,'');assert.match(coordinator.profileError,/profile could not be updated/);
+});
+
+test('an uncertain pointer commit blocks queued old writes and requires loading durable state again',async()=>{
+  const {coordinator,journey}=fixture(oldSession());await coordinator.load();
+  const started=deferred(),hold=deferred();journey.beforeWrite=async()=>{
+    started.resolve();await hold.promise;const error=new Error('Readback unavailable');error.name='SaveCommitUncertainError';throw error;
+  };
+  coordinator.session!.score=30;const first=coordinator.save();await started.promise;
+  coordinator.session!.score=60;const second=coordinator.save();hold.resolve();
+  assert.equal(await first,false);assert.equal(await second,false);assert.equal(journey.writes.length,0);
+  assert.equal(coordinator.session,undefined);assert.equal(coordinator.screen,'menu');assert.equal(coordinator.canStart,false);
+  assert.equal(coordinator.canRetryLoad,true);assert.match(coordinator.error,/could not be confirmed/);
+  journey.beforeWrite=undefined;await coordinator.retryLoad();assert.equal(coordinator.session!.score,20);
 });

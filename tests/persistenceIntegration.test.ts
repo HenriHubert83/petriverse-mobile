@@ -4,6 +4,7 @@ import {JourneySession} from '../src/campaign/journeySession';
 import type {JourneySnapshot} from '../src/campaign/journeySession';
 import {SMALL_LESSON,WIDE_LESSON} from '../src/campaign/journeyLesson';
 import {SaveRepository} from '../src/storage/saveRepository';
+import {JourneyRecoveryRepository} from '../src/storage/journeyRecoveryRepository';
 import type {KeyValueStorage} from '../src/storage/saveRepository';
 import {createJourneyProfile,parseJourneyProfile,observeJourney} from '../src/storage/journeyProfile';
 import {SaveCoordinator} from '../src/mobile/saveCoordinator';
@@ -18,9 +19,9 @@ const pause=(session:JourneySession)=>{
   session.current.selection.cancel();session.current.nudge.cancel();
   if(session.current.state==='active')session.current.togglePause();
 };
-function controller(storage:MemoryStorage){
+function controller(storage:MemoryStorage,useRecovery=false){
   return new SaveCoordinator({
-    journey:new SaveRepository<JourneySnapshot>(storage,'journey',value=>{
+    journey:useRecovery?new JourneyRecoveryRepository(storage,'journey'):new SaveRepository<JourneySnapshot>(storage,'journey',value=>{
       JourneySession.restore(value);return value as JourneySnapshot;
     }),
     profile:new SaveRepository(storage,'profile',parseJourneyProfile),
@@ -91,4 +92,28 @@ test('background interruption clears a partial loop and persists a paused encoun
   assert.deepEqual(reopened.session!.current.selection.path,[]);
   const snapshot=reopened.session!.snapshot();reopened.session!.update(3600);
   assert.deepEqual(reopened.session!.snapshot(),snapshot);
+});
+
+test('the reported ordinary-spore rescue saves and reopens through the actual coordinator and recovery store',async()=>{
+  const storage=new MemoryStorage(),first=controller(storage,true);
+  await first.load();assert.equal(await first.startNew(),true);
+  const session=first.session!;session.begin();
+  assert.equal(session.current.capture(SMALL_LESSON).valid,true);step(session,420);
+  assert.equal(session.current.capture(WIDE_LESSON).valid,true);step(session,420);
+  assert.equal(session.current.state,'complete');assert.equal(await first.save(),true);
+  assert.equal(session.chooseEvolution('continue'),true);assert.equal(await first.save(),true);session.begin();
+  const run=session.current,sector=(run.harvest.rotation+1)%8;
+  assert.equal(run.capture([8+sector,16+sector,16+(sector+1)%8]).valid,true);
+  assert.equal(run.harvest.rescued,1);assert.equal(run.rescuedSpecimens[0].form,'');
+  step(session,60);assert.equal(await first.interrupt(),true);
+  assert.equal(first.error,'');assert.equal(first.profileError,'');
+  const expected=session.snapshot();first.detach();
+
+  const reopened=controller(storage,true);await reopened.load();
+  assert.equal(reopened.continueJourney(),true);assert.equal(reopened.session!.current.state,'paused');
+  assert.deepEqual(reopened.session!.snapshot(),expected);
+  assert.equal(reopened.profile.residents.length,1);assert.equal(reopened.profile.residents[0].form,'');
+  assert.equal(reopened.profile.residents[0].token,run.rescuedSpecimens[0].token);
+  assert.equal(await reopened.save(),true);assert.equal(reopened.profile.residents.length,1);
+  assert.equal(reopened.error,'');assert.equal(reopened.profileError,'');
 });
