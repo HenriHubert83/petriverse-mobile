@@ -24,8 +24,8 @@ function TextureLoader({name,loaded}:{name:TextureKey;loaded:(name:TextureKey,im
   const image=useImage(organismTextures[name]);
   useEffect(()=>{if(image)loaded(name,image);return()=>loaded(name,null);},[image,loaded,name]);return null;
 }
-function Sprite({kind,at,images,opacity=1,angle=0,width}:{kind:string;at:Point;images:Images;opacity?:number;angle?:number;width?:number}){
-  const image=images[textureKey(kind)],metric=spriteMetrics(kind),w=width??metric.width;
+function Sprite({kind,form='',at,images,opacity=1,angle=0,width}:{kind:string;form?:string;at:Point;images:Images;opacity?:number;angle?:number;width?:number}){
+  const image=images[textureKey(kind,form)],metric=spriteMetrics(kind,form),w=width??metric.width;
   const h=image?w*image.height()/image.width():w;
   return <Group opacity={opacity} origin={vec(at.x,at.y)} transform={[{rotate:angle}]}>
     {image?<Image image={image} x={at.x-w*metric.uv.x} y={at.y-h*metric.uv.y} width={w} height={h} fit="fill"/>:
@@ -38,7 +38,7 @@ export function EncounterView({run,touch,tracers,onInteraction}:{run:EncounterSi
     if((previous[name]??null)===image)return previous;const next={...previous};if(image)next[name]=image;else delete next[name];return next;
   }),[]);
   const mother=`mother${run.maxIntegrity}` as TextureKey;
-  const wanted=[...new Set<TextureKey>(['cell',mother,...run.enemies.map(b=>textureKey(b.kind)),...run.phages.clusters.map(()=> 'phage' as const),...run.clots.flatMap(c=>c.preyKinds.map(textureKey))])];
+  const wanted=[...new Set<TextureKey>(['cell',mother,...run.enemies.map(b=>textureKey(b.kind,b.form)),...run.phages.clusters.map(()=> 'phage' as const),...run.clots.flatMap(c=>c.positions.map((_,i)=>textureKey(c.preyKinds[i]??'food',c.preyForms[i])))])];
   const effect=useMemo(()=>{try{return Skia.RuntimeEffect.Make(membraneShader);}catch{return null;}},[]);
   const pan=useMemo(()=>{
     // The touch surface has no interactive children. Fix its page-space origin
@@ -96,7 +96,7 @@ export function EncounterView({run,touch,tracers,onInteraction}:{run:EncounterSi
               {body instanceof EcologyEnemy&&body.latched&&<Path path={pathFor([body.nucleus,run.board.anchors[body.targetNode]])} color="#c08c97" style="stroke" strokeWidth={2}/>}
               {body instanceof Amoeba&&body.phase==='reaching'&&<Path path={pathFor([body.nucleus,body.reachPoint])} color="#d2c99b" opacity={0.6} style="stroke" strokeWidth={5}/>}
               {nuclei.map((p,i)=><Group key={i}>
-                <Sprite kind={body.kind} at={p} images={images} opacity={alpha} angle={nuclei.length===2?Math.atan2(nuclei[1-i].y-p.y,nuclei[1-i].x-p.x):Math.atan2(body.heading.y,body.heading.x)}/>
+                <Sprite kind={body.kind} form={body.form} at={p} images={images} width={body.visitor?90:spriteMetrics(body.kind).width} opacity={alpha} angle={nuclei.length===2?Math.atan2(nuclei[1-i].y-p.y,nuclei[1-i].x-p.x):Math.atan2(body.heading.y,body.heading.x)}/>
                 {preview.has(body.id)&&<Circle cx={p.x} cy={p.y} r={9} color={body.kind==='cyst'?'#df91bb':'#f1da9a'} style="stroke" strokeWidth={2.5}/>}
                 {body.health>1&&<Circle cx={p.x} cy={p.y} r={13+body.health*2} color="#d5be8e" style="stroke" strokeWidth={1.5} opacity={0.6}/>}
               </Group>)}
@@ -109,7 +109,7 @@ export function EncounterView({run,touch,tracers,onInteraction}:{run:EncounterSi
             const p=add(center,run.motherDamage.coreOffset(i));return <Circle key={`loss${i}`} cx={p.x} cy={p.y} r={8} color="#17393e" opacity={0.8*run.motherDamage.coreProgress(i)}/>;
           })}
           {run.clots.map(clot=><Group key={`clot${clot.serial}`}>
-            {clot.positions.map((_,i)=><Sprite key={i} kind={clot.preyKinds[i]??'food'} at={clot.preyPosition(i)} images={images} opacity={Math.max(0,1-clot.progress()*2)}/>)}
+            {clot.positions.map((_,i)=><Sprite key={i} kind={clot.preyKinds[i]??'food'} form={clot.preyForms[i]} at={clot.preyPosition(i)} images={images} opacity={Math.max(0,1-clot.progress()*2)}/>)}
             <Circle cx={clot.center.x} cy={clot.center.y} r={20+clot.nodes.length*2} color="#b6d7b0" opacity={clot.digestion()*0.18}/>
           </Group>)}
           {run.board.anchors.map((anchor,id)=>{

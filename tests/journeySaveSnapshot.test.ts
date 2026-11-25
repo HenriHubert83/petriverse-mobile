@@ -7,6 +7,7 @@ import {Amoeba} from '../src/ecology/amoeba';
 import {Bacterium} from '../src/ecology/bacterium';
 import {JourneyBoss} from '../src/campaign/journeyBoss';
 import {HarvestOrganism} from '../src/ecology/harvestOrganism';
+import {JOURNEY_SAVE_VERSION} from '../src/storage/journeySnapshot';
 
 const json=<T>(v:T):T=>JSON.parse(JSON.stringify(v));
 function finish(session:JourneySession):void{
@@ -93,7 +94,7 @@ test('malformed full saves and unsupported versions fail before simulation recei
     x=>{x.encounter.lesson.nodes=[99];},x=>{x.offers=['unknown'];},x=>{x.finished=true;},
   ];
   for(const change of mutations){const copy=json(snapshot);change(copy);assert.throws(()=>JourneySession.restore(copy));}
-  const newer=json(snapshot) as any;newer.version=2;assert.throws(()=>JourneySession.restore(newer),UnsupportedSaveVersionError);
+  const newer=json(snapshot) as any;newer.version=JOURNEY_SAVE_VERSION+1;assert.throws(()=>JourneySession.restore(newer),UnsupportedSaveVersionError);
 });
 test('random state preserves non-default stream sequences and rejects invalid uint64 encodings',()=>{
   const rng=new SeededRandom(90,71n);for(let i=0;i<37;i++)rng.uint32();const restored=SeededRandom.restore(json(rng.saveState()));

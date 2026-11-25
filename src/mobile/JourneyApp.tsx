@@ -17,7 +17,7 @@ const journeyStore=new JourneyRecoveryRepository(AsyncStorage,'petriverse.journe
 const profileStore=new SaveRepository<JourneyProfile>(AsyncStorage,'petriverse.profile',parseJourneyProfile);
 const makeCoordinator=()=>new SaveCoordinator<JourneySession,JourneySnapshot,JourneyProfile>({
   journey:journeyStore,profile:profileStore,
-  createSession:()=>new JourneySession(Date.now()>>>0),capture:(session:JourneySession)=>session.snapshot(),
+  createSession:(profile)=>new JourneySession(Date.now()>>>0,{knownSpecies:profile.discovered}),capture:(session:JourneySession)=>session.snapshot(),
   restore:(snapshot:JourneySnapshot)=>JourneySession.restore(snapshot),
   createProfile:createJourneyProfile,observeProfile:observeJourney,
   finished:(session:JourneySession)=>session.finished,

@@ -1,5 +1,5 @@
 // Authored ecological moments from prototype/scripts/habitat_events.gd.
-// See CREDITS.md and LICENSE. Creature-form assignment remains separate.
+// See CREDITS.md and LICENSE.
 import type {EncounterSimulation} from '../engine/encounterSimulation';
 import type {Point} from '../geometry/loopGeometry';
 import {HarvestOrganism} from '../ecology/harvestOrganism';
@@ -34,7 +34,7 @@ export class HabitatEvents {
           const at=run.harvest.ecology.pocket(run,(area+i)%8);this.sites.push(at);
           for(let j=0;j<2;j++){
             const food=new HarvestOrganism(++run.nextEnemyId,'food',add(at,{x:(j-0.5)*20,y:0}),{x:5,y:4},i+j);
-            food.bloomId=100000+run.stageIndex;run.enemies.push(food);this.food.push(food.id);
+            food.bloomId=100000+run.stageIndex;run.enemies.push(food);if(run.creatureContentEnabled)run.assignForm(food);this.food.push(food.id);
           }
         }
         if(kind==='migration')run.harvest.ecology.pending.push({at:run.stageElapsed+8,kind:'grazer',area});
@@ -48,7 +48,10 @@ export class HabitatEvents {
     if(kind==='hatching'){
       if(age>=14&&!this.wakeWarned){this.wakeWarned=true;run.harvest.ecology.announce('The garden is waking · cysts hatch at the marked sites in 8s');}
       if(age>=22&&!this.woken){
-        this.woken=true;for(const at of this.sites){const id=++run.nextEnemyId;run.enemies.push(new HarvestOrganism(id,'cyst',at,{x:6,y:4},id));}
+        this.woken=true;for(const at of this.sites){
+          const id=++run.nextEnemyId,cyst=new HarvestOrganism(id,'cyst',at,{x:6,y:4},id);
+          run.enemies.push(cyst);if(run.creatureContentEnabled)run.assignForm(cyst);
+        }
       }
     }
     if(kind==='traveller')for(const body of run.enemies){

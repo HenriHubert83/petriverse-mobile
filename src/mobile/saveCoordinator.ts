@@ -4,7 +4,7 @@ export const AUTOSAVE_INTERVAL_MS=8000;
 interface Repository<T>{load():Promise<SaveLoadResult<T>>;save(value:T):Promise<void>;replace?:(value:T)=>Promise<void>}
 export interface SaveCoordinatorOptions<Session,Snapshot,Profile>{
   journey:Repository<Snapshot>;profile:Repository<Profile>;
-  createSession:()=>Session;capture:(session:Session)=>Snapshot;restore:(snapshot:Snapshot)=>Session;
+  createSession:(profile:Profile)=>Session;capture:(session:Session)=>Snapshot;restore:(snapshot:Snapshot)=>Session;
   createProfile:()=>Profile;observeProfile:(profile:Profile,session:Session)=>Profile;
   finished:(session:Session)=>boolean;pause:(session:Session)=>void;
 }
@@ -112,7 +112,7 @@ export class SaveCoordinator<Session,Snapshot,Profile>{
     if(!this.canStart||(this.needsConfirmation&&!confirmed))return false;
     this.busy=true;this.error='';this.notify();
     let candidate:Session,snapshot:Snapshot;
-    try{candidate=this.options.createSession();snapshot=this.options.capture(candidate);}
+    try{candidate=this.options.createSession(this.profile);snapshot=this.options.capture(candidate);}
     catch{this.busy=false;this.error='A new journey could not be prepared. Your existing journey is unchanged.';this.notify();return false;}
     return this.enqueue(async()=>{
       try{

@@ -28,9 +28,11 @@ export class EncounterEcology {
     const n=((area%8)+8)%8,a=run.board.anchors;
     return outer?scale(add(add(a[8+n],a[16+n]),a[16+(n+1)%8]),1/3):scale(add(add(a[n],a[8+n]),a[8+(n+1)%8]),1/3);
   }
-  add(run:EncounterSimulation,kind:string,area:number,at:Point,form=''):EcologyEnemy|Amoeba{
+  add(run:EncounterSimulation,kind:string,area:number,at:Point,form?:string):EcologyEnemy|Amoeba{
     const id=++run.nextEnemyId,body=kind==='amoeba'?new Amoeba(id,at):kind==='bacterium'?new Bacterium(id,at,area%8):new EcologyEnemy(id,kind,at,area%8);
-    body.form=form;run.enemies.push(body);run.discover(kind);return body;
+    run.enemies.push(body);
+    if(form===undefined)run.assignForm(body);else{body.form=form;run.discoverBody(body);}
+    return body;
   }
   begin(run:EncounterSimulation):void{
     this.nextWave=pacing(run.stageIndex).warning;
@@ -84,7 +86,7 @@ export class EncounterEcology {
       const kind=event.species??(run.stageIndex>=4&&this.wave%2===0?(run.stageIndex<8?'shellback':'twinspore'):'drifter');
       const at=this.arrivalSite(run,event).position,outward=sub(at,run.board.center);
       const body=new Drifter(++run.nextEnemyId,at,this.hunterSpeed(run),kind);body.pairAngle=Math.atan2(outward.y,outward.x)+Math.PI/2;
-      run.enemies.push(body);run.discover(kind);run.harvest.threatsSpawned++;return;
+      run.enemies.push(body);run.assignForm(body);run.harvest.threatsSpawned++;return;
     }
     if(run.enemies.filter(b=>b.kind===event.kind).length>=(event.kind==='amoeba'&&run.stageIndex<8?1:2))return;
     const site=this.arrivalSite(run,event),body=this.add(run,event.kind,event.area,site.position);

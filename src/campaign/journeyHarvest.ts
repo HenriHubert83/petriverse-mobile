@@ -1,5 +1,5 @@
 // Capture, scoring, blooms and ordinary encounter rules from journey_harvest.gd.
-// Discovery visitors and legacy final surge remain separate migration work.
+// Legacy final surge remains separate migration work.
 // See CREDITS.md and LICENSE.
 import type {Point} from '../geometry/loopGeometry';
 import {distanceToSegment} from '../geometry/loopGeometry';
@@ -16,6 +16,8 @@ import {captureMastery} from './journeyMastery';
 import type {Feat} from './journeyMastery';
 import {BLOOM_CYCLE} from './encounterRhythm';
 import {HabitatEvents} from './habitatEvents';
+import {beginDiscoveries,stepDiscoveries} from './journeyDiscoveries';
+import {formDefinition} from '../content/creatureCatalogue';
 
 export interface EncounterSpec {
   stage:number;mode:'feed'|'rescue'|'purify'|'defend'|'sectors'|'boss';
@@ -33,8 +35,6 @@ export interface HarvestResult extends HarvestOutcome {
   polygon:Point[];positions:Point[];preyKinds:string[];preyForms:string[];nodes:number[];
   kills:number;bodies:number;armorHits:number;restoredNode:number;recovery:number;mastery:Feat[];
 }
-// The only expedition spore forms in pinned expedition_creatures.gd. Full form catalogue is pending.
-const EXPEDITION_SPORES=new Set(['glasswing_spore','comet_spore']);
 export const FLOW_WINDOW=3,FLOW_STEP=40;
 export class JourneyHarvest {
   readonly ecology=new EncounterEcology();
@@ -43,6 +43,7 @@ export class JourneyHarvest {
   cleanFood=0;huntersCaptured=0;bossHits=0;flow=0;bestFlow=0;lastFlowTime=-100;
   lossTitle='The mother died.';lossReason='';rotation=0;
   blooms=0;sporesSpawned=0;threatsSpawned=0;nextBloom=18;lastRefill=0;
+  visitorAt=-1;visitorSpawned=false;
   constructor(readonly spec:Readonly<EncounterSpec>){}
 
   begin(run:EncounterSimulation):void{
@@ -54,7 +55,7 @@ export class JourneyHarvest {
       const boss=new JourneyBoss(++run.nextEnemyId,run.board,Math.floor(run.stageIndex/4) as 0|1|2);
       run.enemies.push(boss);run.discover(boss.kind);
     }
-    run.discover('food');run.discover('cyst');this.ecology.begin(run);this.events.begin(run);
+    run.discover('food');run.discover('cyst');this.ecology.begin(run);beginDiscoveries(run);this.events.begin(run);
   }
   spawnBloom(run:EncounterSimulation,sector:number):void{
     const next=(sector+1)%8,anchors=run.board.anchors;
@@ -74,13 +75,14 @@ export class JourneyHarvest {
         body.origin=add(add(scale(outerA,0.25),scale(outerB,i===5?0.48:0.27)),scale(outerC,i===5?0.27:0.48));
         body.nucleus={...body.origin};body.drift={x:7,y:5};
       }
-      run.enemies.push(body);
+      run.enemies.push(body);if(run.creatureContentEnabled)run.assignForm(body);
     }
   }
   spawnSpore(run:EncounterSimulation,area=-1):void{
     const sector=area<0?(this.rotation+this.sporesSpawned*3+1)%8:area,a=run.board.anchors;
     const at=scale(add(add(a[8+sector],a[16+sector]),a[16+(sector+1)%8]),1/3);
-    run.enemies.push(new HarvestOrganism(++run.nextEnemyId,'spore',at,{x:5,y:4},this.sporesSpawned++));run.discover('spore');
+    const spore=new HarvestOrganism(++run.nextEnemyId,'spore',at,{x:5,y:4},this.sporesSpawned++);
+    run.enemies.push(spore);run.discover('spore');if(run.creatureContentEnabled)run.assignForm(spore);
   }
   stepContent(run:EncounterSimulation,delta:number):void{
     if(run.lessonActive()){run.lesson.step(run);return;}
@@ -163,7 +165,7 @@ export class JourneyHarvest {
         run.motherDamage.record(body.id,origin,run.board.center,'cyst',[origin]);poisonLeft--;
       }
       if(body.kind==='spore')run.rescuedSpecimens.push({token:`${run.runSeed}:${run.stageIndex}:${body.id}`,
-        form:body.form,stage:run.stageIndex,encounter:run.encounterIndex+1,rare:body.visitor||EXPEDITION_SPORES.has(body.form),story:body.story});
+        form:body.form,stage:run.stageIndex,encounter:run.encounterIndex+1,rare:body.visitor||!!formDefinition(body.form)?.expedition,story:body.story});
       if(body instanceof Amoeba)run.amoebas.rescue(run,body);
       absorbed.push(body.id);
       for(const p of body.nuclei()){positions.push({...p});preyKinds.push(body.kind);preyForms.push(body.form);}
@@ -242,7 +244,7 @@ export class JourneyHarvest {
   stepExistingBodies(run:EncounterSimulation,delta:number):void{
     run.enemies=run.enemies.filter(b=>!(b instanceof HarvestOrganism)||!['food','cyst','spore'].includes(b.kind)||b.age<b.lifetime());
     this.ecology.stepExistingBodies(run,delta);
-    if(run.contentEnabled)this.events.step(run,delta);
+    if(run.contentEnabled){stepDiscoveries(run,delta);this.events.step(run,delta);}
     if(run.stageIndex>=4){
       const now=run.stageElapsed;
       const current=run.stageIndex>=8?{x:Math.cos(now*0.025)*0.65,y:Math.sin(now*0.025)*0.65}:

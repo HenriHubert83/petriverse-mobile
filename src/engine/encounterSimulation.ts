@@ -23,6 +23,8 @@ import {FluidField} from './fluidField';
 import {MotherDamage} from './motherDamage';
 import {SeededRandom} from './seededRandom';
 import {JourneyLesson,WIDE_LESSON} from '../campaign/journeyLesson';
+import {assignCreatureForm,discoveryId} from '../content/creatureCatalogue';
+import type {ExpeditionVisit} from '../campaign/expeditionCreatures';
 
 export type EncounterState='brief'|'active'|'paused'|'complete'|'loss';
 export type GrowthRole='guard'|'feeder';
@@ -32,6 +34,7 @@ export interface EncounterOptions {
   seed?:number;waterSeed?:number;encounterIndex?:number;maxIntegrity?:number;integrity?:number;
   biomass?:number;mutations?:readonly string[];growthRoles?:Readonly<Record<number,GrowthRole>>;
   content?:boolean;guidedLesson?:boolean;rng?:SeededRandom;hydrate?:boolean;
+  creatureContentEnabled?:boolean;nextEnemyId?:number;expeditionRoster?:readonly ExpeditionVisit[];
 }
 const len=(p:Point)=>Math.hypot(p.x,p.y);
 const limit=(p:Point,max:number):Point=>len(p)>max?scale(p,max/len(p)):p;
@@ -42,6 +45,7 @@ export class EncounterSimulation {
   readonly amoebas=new AmoebaSystem();readonly phages=new PhageSystem();readonly nudge=new CystNudge();
   readonly harvest:JourneyHarvest;readonly runSeed:number;readonly encounterIndex:number;readonly encounterKey:string;
   readonly contentEnabled:boolean;readonly rng:SeededRandom;readonly lesson=new JourneyLesson();
+  readonly creatureContentEnabled:boolean;expeditionRoster:ExpeditionVisit[];
   readonly maxIntegrity:number;readonly mutations:readonly string[];readonly growthRoles:Record<number,GrowthRole>;
   state:EncounterState='brief';enemies:Drifter[]=[];nextEnemyId=0;
   elapsed=0;stageElapsed=0;integrity:number;biomass:number;score=0;kills=0;totalFood=0;totalRescued=0;
@@ -58,6 +62,9 @@ export class EncounterSimulation {
     this.harvest=new JourneyHarvest(Object.freeze({...spec}));
     this.runSeed=options.seed??1;this.encounterIndex=options.encounterIndex??spec.stage;
     this.rng=options.rng??new SeededRandom(this.runSeed);this.contentEnabled=options.content??false;
+    this.creatureContentEnabled=options.creatureContentEnabled??true;
+    this.nextEnemyId=options.nextEnemyId??0;
+    this.expeditionRoster=(options.expeditionRoster??[]).map(visit=>({...visit}));
     this.encounterKey=options.encounterIndex===undefined?String(spec.stage):`route:${options.encounterIndex}`;
     this.board.configureDish(Math.floor(spec.stage/4));
     this.cells=this.board.anchors.map(()=>new Cell());
@@ -111,6 +118,15 @@ export class EncounterSimulation {
   }
   bankFood(amount:number):void{if(this.biomass<30)this.biomass=Math.min(30,this.biomass+amount);}
   discover(kind:string):void{if(!this.seenSpecies.includes(kind))this.seenSpecies.push(kind);}
+  discoverBody(body:Drifter):void{
+    this.discover(body.kind);
+    const identity=discoveryId(body.kind,body.form);
+    if(this.creatureContentEnabled&&identity)this.discover(identity);
+  }
+  assignForm(body:Drifter):void{
+    if(this.creatureContentEnabled)assignCreatureForm(body,this.runSeed,this.stageIndex);
+    this.discoverBody(body);
+  }
   growthActive(role:GrowthRole):number{
     const active=this.motherDamage.activeIndices();
     return Object.entries(this.growthRoles).filter(([slot,value])=>value===role&&active.includes(Number(slot))&&!this.motherDamage.lost[Number(slot)]).length;

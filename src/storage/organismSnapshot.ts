@@ -10,6 +10,7 @@ import {Conjoined} from '../ecology/conjoined';
 import {JourneyBoss} from '../campaign/journeyBoss';
 import type {Board} from '../geometry/board';
 import type {Point} from '../geometry/loopGeometry';
+import {validForm} from '../content/creatureCatalogue';
 
 type FieldValue=number|string|boolean|number[]|Point;
 type Fields=Record<string,FieldValue>;
@@ -54,7 +55,8 @@ function capture(body:Drifter,schema:Schema):Fields{
 const common:Schema={
   id:integer(1),nucleus:point,speed:number(0,10000),kind:string,heading:point,health:integer(0,100),age:number(),form:string,
   gateIds:ids(1e9,100),shieldRemaining:number(),cradle:boolean,cradleOpenAge:number(-1),story:string,visitor:boolean,
-  bloomReleases:integer(),bloomId:integer(-1),huntTarget:integer(-1),huntTime:number(),forageRemaining:number(),foragingDone:boolean,
+  // Moonlace releases deliberately use negative bloom IDs, distinct from ordinary blooms.
+  bloomReleases:integer(),bloomId:integer(-1e10),huntTarget:integer(-1),huntTime:number(),forageRemaining:number(),foragingDone:boolean,
   fedRemaining:number(),carriedFood:integer(),stunned:number(),slowed:number(),hitFlash:number(),shieldFlash:number(),
   pairAngle:number(-1e12,1e12),pairSpan:number(0,10000),lureVector:point,lureElapsed:number(),
 };
@@ -95,9 +97,14 @@ function checkKind(type:OrganismType,kind:string,specific:Fields):void{
     else if(kind!==expected)invalid();
   }else if(!allowed[type].includes(kind))invalid();
 }
+function checkIdentity(type:OrganismType,fields:Fields):void{
+  if(!validForm(fields.form as string,fields.kind as string))invalid();
+  if(fields.visitor&&(type!=='harvest'||fields.kind!=='spore'||
+    !['moonlace','glass_harp','glowdrift'].includes(fields.form as string)))invalid();
+}
 export function captureOrganism(body:Drifter):OrganismSnapshot{
   const type=typeOf(body),data={type,common:capture(body,common),specific:capture(body,schemas[type])};
-  checkKind(type,data.common.kind as string,data.specific);return data;
+  checkKind(type,data.common.kind as string,data.specific);checkIdentity(type,data.common);return data;
 }
 export function restoreOrganism(value:unknown,board:Board):Drifter{
   const data=object(value);
@@ -106,6 +113,7 @@ export function restoreOrganism(value:unknown,board:Board):Drifter{
   const type=data.type as OrganismType,fields=parse(data.common,common),specific=parse(data.specific,schemas[type]);
   const id=fields.id as number,position=fields.nucleus as Point,kind=fields.kind as string;
   checkKind(type,kind,specific);
+  checkIdentity(type,fields);
   let body:Drifter;
   switch(type){
     case 'drifter':body=new Drifter(id,position,fields.speed as number,kind);break;

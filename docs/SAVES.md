@@ -13,7 +13,7 @@ This increment ports the currently represented part of the pinned original `jour
 
 ## Storage and runtime boundary
 
-`JourneySession.snapshot()` emits schema version 1. `JourneySession.restore()` validates it, restores the live RNG shared with the encounter and the separate retry RNG, reconstructs known organism classes and reconnects clot/cell references. Save data never selects an arbitrary constructor or executable script. Active restores pause by default; CPU comparison fixtures can explicitly request active restoration.
+`JourneySession.snapshot()` emits schema version 2. `JourneySession.restore()` validates it, restores the live RNG shared with the encounter and the separate retry RNG, reconstructs known organism classes and reconnects clot/cell references. Save data never selects an arbitrary constructor or executable script. Active restores pause by default; CPU comparison fixtures can explicitly request active restoration.
 
 The snapshot preserves the current mobile route, seed, index, completion bookkeeping, evolution offers and retry colony, plus board/cell/organism state, Mother damage, recovery clots, tutorial, harvest/ecology/events, phages, amoeba returns, nudge cooldown, residual membranes and fluid history. Routes are validated against the current generator; changing it requires a schema/migration decision. Newer schemas are kept untouched and reported as unsupported.
 
@@ -23,13 +23,23 @@ The snapshot preserves the current mobile route, seed, index, completion bookkee
 
 Entry reconstruction uses the original entry colony and RNG, without invoking the Retry action or granting extra healing. Actual retry entries retain their already-applied retry healing. Older snapshots without enough retry-entry metadata retain their known exact state as the first fallback until a new entry is established. This is compatibility with the earlier mobile JSON format, not desktop Godot saves.
 
-`SaveCoordinator` serializes user-level writes and replacement. It captures data before queuing, rejects stale callbacks from a replaced session, and exposes a new journey only after its initial save succeeds. Profile preparation and writes have independent errors and cannot block a valid journey save. Profile observation deduplicates accomplishments and retains unsaved in-memory records after a transient profile write failure. Ordinary rescued spores may legitimately have an empty form name until the complete creature catalogue is implemented; this does not invalidate their rescue records.
+`SaveCoordinator` serializes user-level writes and replacement. It captures data before queuing, rejects stale callbacks from a replaced session, and exposes a new journey only after its initial save succeeds. Profile preparation and writes have independent errors and cannot block a valid journey save. Profile observation deduplicates accomplishments and retains unsaved in-memory records after a transient profile write failure. Ordinary base-form spores legitimately have an empty form name; this does not invalidate their rescue records.
 
 Profile version 1 retains discovered/introduced/offered species, rescued resident records, cleared encounters, colony traits, mastery memories, completed seeds, victories, best score and completed-dish unlock eligibility. Partial older JSON profiles can receive defaults. This is not migration of Godot `.cfg` files, and it does not implement home-pond interactions, journal/cinema or selection/gameplay for additional colonies.
+
+## Creature-content migration
+
+Schema 2 persists creature-content enablement, the planned expedition roster and its spawned flags, visitor arrival time, and the encounter-entry organism ID counter. Retry and independent checkpoint recovery use the saved entry roster and IDs, so a visitor reappears once and keeps its identity. New journeys select expedition entries using the loaded profile discoveries. Ordinary cosmetic forms use an independent 64-bit seeded stream.
+
+Schema 1 migrates explicitly with new creature scheduling disabled for the entire existing journey. Current bodies, RNG, discoveries and progress remain intact, including later retries and encounters. Start New Journey to enable the expanded ecosystem. The route generator and profile schema remain unchanged. Older app builds reject schema 2 rather than silently dropping the new state.
+
+Moonlace food uses negative bloom identifiers, now accepted within bounded integer limits. Organism restoration checks that forms match species and that helper-visitor flags belong only to the three helper spore forms. Global organism IDs in new journeys prevent rescue-token collisions between authored and generated visits sharing a stage.
 
 ## Automated verification
 
 On 2026-11-25, the initial save/menu increment passed 129 CPU groups. The subsequent save repair, checkpoint recovery and camera increment passes all 148 CPU groups and full TypeScript checking. Coverage includes snapshot continuation/retry/bosses/relationships, malformed/future data, backup/checkpoint preference, staged write failures, ordering across instances, profile deduplication, legacy migration and coordinator lifecycle. Integration tests exercise real tutorial capture, ordinary-spore rescue, cells partway through recovery, reopening, evolution and interrupted input. Camera tests complete actual tutorial captures through zoomed/panned coordinates. Both iOS and Android Hermes exports completed with local assets.
+
+The 2026-11-26 creature-content pass adds catalogue, ecology, artwork and persistence regressions. It includes a real schema-1 fixture captured from commit `9ecffce`, with twelve seconds of recorded continuation across the new visitor arrival window; migrated state matches the historical result exactly. See DEVLOG for the full current suite and export results.
 
 Successful export does not establish native UI/storage behavior or measured device performance. Henri subsequently reported that the save/menu version generally works on his physical iPhone, but supplied a screenshot of an intermittent save-preparation error in encounter 2 after rescuing a spore. The error banner also reduced the dish's size. A CPU reproduction identified an ordinary spore's empty form name being rejected by profile validation, which incorrectly blocked the separate journey save. This report is partial device evidence, not a completed close/reopen or interruption checklist. On 2026-11-26 Henri then reported that he prefers the new layout and zoom/pan controls and that saving seems fine. This is positive follow-up evidence for ordinary use after the repair. The individual checklist steps below were not all reported as completed; retain them for focused regression and interruption testing.
 
@@ -47,3 +57,11 @@ Successful export does not establish native UI/storage behavior or measured devi
 10. Check that changing instructions and any save-status indicator leave the dish's size and position unchanged. Error details and retry controls belong in the paused/result panel, with the playfield retaining its full height.
 
 Report the device/OS, step and any visible error. Backup fault injection is covered by automated tests; no manual deletion or corruption of the phone's data is required.
+
+## Creature-content phone check
+
+- Continue your existing journey first and verify its prior progress. Existing journeys retain their old ecology.
+- Start a new journey when ready. Look for alternate algae, cyst and spore forms after the opening, and a rare expedition creature during Small allies after eight seconds of active play.
+- In The nursery, allow roughly 36 to 44 active seconds for Moonlace. It releases two food particles after another six seconds. Pause/save and fully reopen during this visit.
+- Capture a visitor or expedition spore, reopen, and check that the rescue count and profile record remain. Test a retry of a generated encounter; its chosen expedition should reappear once.
+- Check each new visual at Fit and zoomed views: the bright nucleus remains the capture point and save notices do not move the dish.

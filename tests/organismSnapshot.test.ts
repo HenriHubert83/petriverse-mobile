@@ -18,7 +18,7 @@ test('organism records preserve subclass behavior and motion through JSON',()=>{
     new EcologyEnemy(3,'grazer',position,5),new Amoeba(4,position),new Bacterium(5,position,3),new PhageCluster(6,position),
     new Conjoined(7,board),new JourneyBoss(8,board,0),new JourneyBoss(9,board,1),new JourneyBoss(10,board,2)];
   for(const body of organisms){
-    body.age=8;body.lureVector={x:12,y:-4};body.lureElapsed=0.2;body.gateIds=[900];body.form='fixture';body.huntTarget=44;
+    body.age=8;body.lureVector={x:12,y:-4};body.lureElapsed=0.2;body.gateIds=[900];body.form=body.kind==='cyst'?'crown_cyst':'';body.huntTarget=44;
     if(body instanceof EcologyEnemy){body.destination={x:850,y:390};body.actionClock=9;body.storedFood=2;body.spawning=0;}
     if(body instanceof Bacterium)body.infectionAge=3;
     if(body instanceof Amoeba){body.phase='digesting';body.captiveNode=2;body.digestionAge=2;body.armExtension=0.4;}
@@ -51,6 +51,7 @@ test('malformed organisms cannot introduce fields, invalid kinds, indices or non
     (v:any)=>{v.specific.targetNode=24;},(v:any)=>{v.specific.phase='unknown';},(v:any)=>{v.common.kind='food';},
     (v:any)=>{v.type='constructor';},(v:any)=>{v.common.extra='ignored?';},(v:any)=>{v.specific.siteNodes=[2,2];},
     (v:any)=>{v.common.nucleus.z=0;},(v:any)=>{delete v.common.age;},
+    (v:any)=>{v.common.form='moonlace';v.common.visitor=true;},(v:any)=>{v.common.form='not-a-form';},
   ]){const corrupt=JSON.parse(JSON.stringify(value));change(corrupt);assert.throws(()=>restoreOrganism(corrupt,board));}
   const body=new JourneyBoss(2,board,2),corrupt=captureOrganism(body);corrupt.specific.juvenile=true;
   assert.throws(()=>restoreOrganism(corrupt,board));

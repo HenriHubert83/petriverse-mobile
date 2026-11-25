@@ -19,8 +19,11 @@ import {FEATS} from '../campaign/journeyMastery';
 import type {MasteryAward,Feat} from '../campaign/journeyMastery';
 import type {HarvestResult} from '../campaign/journeyHarvest';
 import type {CellReturn} from '../ecology/amoebaSystem';
+import {validExpeditions} from '../campaign/expeditionCreatures';
+import type {ExpeditionVisit} from '../campaign/expeditionCreatures';
+import {visitorForm} from '../campaign/journeyDiscoveries';
 
-export const JOURNEY_SAVE_VERSION=1;
+export const JOURNEY_SAVE_VERSION=2;
 export class UnsupportedSaveVersionError extends Error {
   constructor(){super('This journey was saved by a newer version of Petriverse. Update the app to continue.');this.name='UnsupportedSaveVersionError';}
 }
@@ -28,6 +31,7 @@ export interface ColonyState {
   integrity:number;capacity:number;biomass:number;score:number;mutations:string[];growthRoles:Record<number,GrowthRole>;
   lost:boolean[];totalFood:number;totalRescued:number;kills:number;loopsDrawn:number;bestCapture:number;
   rescuedSpecimens:RescuedSpecimen[];masteryAwards:MasteryAward[];seenSpecies:string[];
+  nextEnemyId:number;expeditionRoster:ExpeditionVisit[];
 }
 const RUN_NUMBERS=['elapsed','stageElapsed','integrity','biomass','score','kills','totalFood','totalRescued','bestCapture','loopsDrawn',
   'nextEnemyId','guardianSpent','guardianBlockSerial','contactTime','resolvedContacts','captureSerial'] as const;
@@ -74,11 +78,16 @@ function motherMask(value:unknown,capacity:number,integrity:number):boolean[]{
   if(lost.some((missing,i)=>missing&&!active.includes(i))||lost.filter(Boolean).length!==capacity-integrity)throw Error('Invalid saved organelles');
   return lost;
 }
-export function readColony(value:unknown):ColonyState{
+export function readColony(value:unknown,legacy=false,route:readonly JourneySpec[]=[]):ColonyState{
   const p=object(value,'colony'),capacity=integer(p.capacity,3,7),integrity=integer(p.integrity,0,capacity);
   const counters=numbers(p,COUNTERS,0);for(const n of Object.values(counters))integer(n);
   return {integrity,capacity,biomass:integer(p.biomass,0,30),...counters,mutations:traits(p.mutations),growthRoles:growth(p.growthRoles),
-    lost:motherMask(p.lost,capacity,integrity),rescuedSpecimens:specimens(p.rescuedSpecimens),masteryAwards:awards(p.masteryAwards),seenSpecies:unique(array(p.seenSpecies,v=>text(v,100),100))};
+    lost:motherMask(p.lost,capacity,integrity),rescuedSpecimens:specimens(p.rescuedSpecimens),masteryAwards:awards(p.masteryAwards),seenSpecies:unique(array(p.seenSpecies,v=>text(v,100),100)),
+    nextEnemyId:legacy?0:integer(p.nextEnemyId),expeditionRoster:legacy?[]:readExpeditions(p.expeditionRoster,route)};
+}
+function readExpeditions(value:unknown,route:readonly JourneySpec[]):ExpeditionVisit[]{
+  if(!validExpeditions(value,route))throw Error('Invalid expedition roster');
+  return (value as ExpeditionVisit[]).map(v=>({form:v.form,encounter:v.encounter,spawned:v.spawned}));
 }
 function captureResult(value:unknown):(HarvestResult&{strain?:number})|undefined{
   if(value===null)return;
@@ -98,13 +107,13 @@ function captureResult(value:unknown):(HarvestResult&{strain?:number})|undefined
 }
 export function captureEncounter(run:EncounterSimulation){
   return {
-    run:{...pick(run,RUN_NUMBERS),state:run.state,bossDefeated:run.bossDefeated,maxIntegrity:run.maxIntegrity,mutations:[...run.mutations],growthRoles:{...run.growthRoles},
+    run:{...pick(run,RUN_NUMBERS),state:run.state,creatureContentEnabled:run.creatureContentEnabled,expeditionRoster:clone(run.expeditionRoster),bossDefeated:run.bossDefeated,maxIntegrity:run.maxIntegrity,mutations:[...run.mutations],growthRoles:{...run.growthRoles},
       lastContacts:[...run.lastContacts],lastCapture:run.lastCapture?clone(run.lastCapture):null,residuals:clone(run.residuals),rescuedSpecimens:clone(run.rescuedSpecimens),
       masteryAwards:clone(run.masteryAwards),seenSpecies:[...run.seenSpecies],stageBonus:{...run.stageBonus}},
     board:pick(run.board,['anchors','motionTimes','motionHomes','velocities','motionAccumulator']),
     cells:run.cells.map(c=>pick(c,['remaining','duration','captor','lost'])),
     mother:pick(run.motherDamage,['lost','bites','serial']),
-    harvest:{...pick(run.harvest,HARVEST_NUMBERS),visited:[...run.harvest.visited],lossTitle:run.harvest.lossTitle,lossReason:run.harvest.lossReason,
+    harvest:{...pick(run.harvest,HARVEST_NUMBERS),visitorAt:run.harvest.visitorAt,visitorSpawned:run.harvest.visitorSpawned,visited:[...run.harvest.visited],lossTitle:run.harvest.lossTitle,lossReason:run.harvest.lossReason,
       ecology:{...pick(run.harvest.ecology,['notice','noticeTime','nextWave','wave','pending']),foodWeb:pick(run.harvest.ecology.foodWeb,['eatenFood','escapedSpores'])},
       events:{...pick(run.harvest.events,['at','born','warned','woken','wakeWarned','food','sites']),kind:run.harvest.events.kind??null}},
     lesson:pick(run.lesson,['stepIndex','nodes']),nudge:pick(run.nudge,['cooldown','learned','rippleOrigin','rippleVector']),
@@ -118,29 +127,34 @@ export function captureEncounter(run:EncounterSimulation){
 }
 export type EncounterSnapshot=ReturnType<typeof captureEncounter>;
 export interface JourneySnapshot {
-  format:'petriverse-mobile-journey';version:1;seed:number;route:JourneySpec[];index:number;retries:number;finished:boolean;
+  format:'petriverse-mobile-journey';version:2;creatureContentEnabled:boolean;seed:number;route:JourneySpec[];index:number;retries:number;finished:boolean;
   offers:string[];handledCompletion:number;rng:RandomSnapshot;checkpoint:{colony:ColonyState;rng:RandomSnapshot;retryHealing?:boolean};encounter:EncounterSnapshot;
 }
 export function readJourneyHeader(value:unknown){
   const p=object(value,'journey');
   if(p.format!=='petriverse-mobile-journey')throw Error('Unrecognized journey save');
   const version=integer(p.version,1);if(version>JOURNEY_SAVE_VERSION)throw new UnsupportedSaveVersionError();
+  const legacy=version===1,creatureContentEnabled=legacy?false:bool(p.creatureContentEnabled);
   const seed=integer(p.seed,0,0xffffffff),route=makeRoute(seed);
   // This schema identifies the exact route generator. Future route changes require migration.
   if(JSON.stringify(p.route)!==JSON.stringify(route))throw Error('Invalid or mismatched saved journey route');
   const index=integer(p.index,0,route.length-1),retries=integer(p.retries),finished=bool(p.finished),offers=traits(p.offers),handledCompletion=integer(p.handledCompletion,-1,index);
-  const checkpoint=object(p.checkpoint,'retry checkpoint'),colony=readColony(checkpoint.colony),rng=SeededRandom.restore(p.rng),retryRng=SeededRandom.restore(checkpoint.rng);
+  const checkpoint=object(p.checkpoint,'retry checkpoint'),colony=readColony(checkpoint.colony,legacy,route),rng=SeededRandom.restore(p.rng),retryRng=SeededRandom.restore(checkpoint.rng);
+  if(!creatureContentEnabled&&colony.expeditionRoster.length)throw Error('Unexpected legacy expedition');
   if(colony.capacity>capacityForStage(route[index].stage))throw Error('Invalid retry colony capacity');
   if(finished&&index!==route.length-1)throw Error('Invalid completed journey');
   const retryHealing=checkpoint.retryHealing===undefined?undefined:bool(checkpoint.retryHealing);
-  return {seed,route,index,retries,finished,offers,handledCompletion,colony,rng,retryRng,retryHealing,encounter:p.encounter};
+  return {seed,route,index,retries,finished,offers,handledCompletion,colony,rng,retryRng,retryHealing,encounter:p.encounter,legacy,creatureContentEnabled};
 }
-export function restoreEncounter(value:unknown,spec:JourneySpec,seed:number,index:number,rng:SeededRandom,pauseOnResume=true):EncounterSimulation{
+export function restoreEncounter(value:unknown,spec:JourneySpec,seed:number,index:number,rng:SeededRandom,pauseOnResume=true,legacy=false):EncounterSimulation{
   const p=object(value,'encounter'),r=object(p.run,'encounter state'),capacity=capacityForStage(spec.stage);
   if(integer(r.maxIntegrity,3,7)!==capacity)throw Error('Invalid saved Mother capacity');
   const state=text(r.state,20);if(!STATE_VALUES.includes(state))throw Error('Invalid saved encounter state');
   const run=new EncounterSimulation(spec,{seed,encounterIndex:index,maxIntegrity:capacity,integrity:integer(r.integrity,0,capacity),
-    biomass:integer(r.biomass,0,30),mutations:traits(r.mutations),growthRoles:growth(r.growthRoles),content:true,hydrate:true,rng});
+    biomass:integer(r.biomass,0,30),mutations:traits(r.mutations),growthRoles:growth(r.growthRoles),content:true,hydrate:true,rng,
+    creatureContentEnabled:legacy?false:bool(r.creatureContentEnabled),expeditionRoster:legacy?[]:readExpeditions(r.expeditionRoster,makeRoute(seed))});
+  if(!run.creatureContentEnabled&&run.expeditionRoster.length)throw Error('Unexpected legacy expedition');
+  if(run.expeditionRoster.some(v=>v.spawned&&v.encounter>index))throw Error('Premature expedition discovery');
   Object.assign(run,numbers(r,RUN_NUMBERS,0));
   for(const key of RUN_NUMBERS)if(!['elapsed','stageElapsed','contactTime'].includes(key))integer(run[key]);
   number(run.stageElapsed,0,spec.duration);if(run.elapsed<run.stageElapsed)throw Error('Invalid saved elapsed time');
@@ -150,6 +164,7 @@ export function restoreEncounter(value:unknown,spec:JourneySpec,seed:number,inde
   run.residuals=array(r.residuals,v=>{const s=object(v);return {polygon:array(s.polygon,point,12),remaining:number(s.remaining,0,4)};},100);
   for(const m of run.residuals)if(m.polygon.length<3)throw Error('Invalid saved residual membrane');
   run.rescuedSpecimens=specimens(r.rescuedSpecimens);run.masteryAwards=awards(r.masteryAwards);run.seenSpecies=unique(array(r.seenSpecies,v=>text(v,100),100));
+  if(run.expeditionRoster.some(v=>v.spawned!==run.seenSpecies.includes(v.form)))throw Error('Inconsistent expedition discovery');
   run.stageBonus=numbers(object(r.stageBonus),['health','swift','flow'],0);
   const board=object(p.board,'board');
   run.board.anchors=array(board.anchors,point,24,24);run.board.motionHomes=array(board.motionHomes,point,24,24);
@@ -162,6 +177,11 @@ export function restoreEncounter(value:unknown,spec:JourneySpec,seed:number,inde
   run.motherDamage.bites=array(mother.bites,v=>{const b=object(v);return {serial:integer(b.serial,1,run.motherDamage.serial),enemyId:id(b.enemyId),core:integer(b.core,0,6),origin:point(b.origin),age:number(b.age,0,2.2),kind:text(b.kind,100),nuclei:array(b.nuclei,point,12),health:integer(b.health,0,100),form:text(b.form,200)};},7);
   unique(run.motherDamage.bites.map(b=>b.core));for(const bite of run.motherDamage.bites)if(!run.motherDamage.lost[bite.core])throw Error('Invalid saved bite');
   const h=object(p.harvest,'harvest');Object.assign(run.harvest,numbers(h,HARVEST_NUMBERS));
+  run.harvest.visitorAt=legacy?-1:number(h.visitorAt,-1,44);
+  run.harvest.visitorSpawned=legacy?false:bool(h.visitorSpawned);
+  if((run.harvest.visitorAt!==-1&&run.harvest.visitorAt<36)||
+    (!run.creatureContentEnabled&&(run.harvest.visitorAt!==-1||run.harvest.visitorSpawned))||
+    (run.harvest.visitorSpawned&&(run.harvest.visitorAt<0||run.stageElapsed<run.harvest.visitorAt)))throw Error('Invalid saved visitor timing');
   for(const key of HARVEST_NUMBERS)if(key!=='lastFlowTime'&&run.harvest[key]<0)throw Error('Invalid saved harvest counter');
   run.harvest.visited=unique(array(h.visited,v=>integer(v,0,7),8));run.harvest.lossTitle=text(h.lossTitle);run.harvest.lossReason=text(h.lossReason);
   integer(run.harvest.rotation,0,7);
@@ -183,6 +203,8 @@ export function restoreEncounter(value:unknown,spec:JourneySpec,seed:number,inde
   const waterHistory=array(p.waterPositions,v=>{const w=object(v);return {id:integer(w.id,1,run.nextEnemyId),position:point(w.position)};},4096);
   unique(waterHistory.map(v=>v.id));run.restoreWaterHistory(waterHistory);
   run.enemies=array(p.enemies,v=>restoreOrganism(v,run.board),2048);
+  const helpers=run.enemies.filter(body=>body.visitor);
+  if(helpers.length>1||helpers.some(body=>!run.harvest.visitorSpawned||body.form!==visitorForm(spec.stage)))throw Error('Inconsistent helper visitor');
   const phages=object(p.phages,'phages');run.phages.burstSerial=integer(phages.serial);run.phages.learned=bool(phages.learned);
   run.phages.clusters=array(phages.clusters,v=>{const c=restoreOrganism(v,run.board);if(!(c instanceof PhageCluster))throw Error('Invalid phage class');return c;},2);
   run.phages.bursts=array(phages.bursts,v=>{const b=object(v);return {at:point(b.at),age:number(b.age,0,3.2),angle:number(b.angle,-100,100),serial:integer(b.serial,1,run.phages.burstSerial)};},10);

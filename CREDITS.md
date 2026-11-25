@@ -4,7 +4,7 @@
 
 **Mobile adaptation**: Henri Hubert / AI Engineer Hub (https://aiengineerhub.com/). The adaptation changes the engine, application UI and controls to support landscape iOS and Android gameplay. Development changes include GDScript-to-TypeScript simulation and journey ports, touch controls, a Skia gameplay screen and initial Godot-to-SkSL shader translations. Complete feature integration and native visual verification are still in progress. See DEVLOG.md for the dated record of modifications.
 
-The 21 PNG files currently in `assets/organisms` are unmodified original artwork from the pinned commit. Their byte lengths and Git blob hashes match `docs/ASSET_MANIFEST.json`. The original authored journey and mutation text is carried into `data/journey.json`. No original audio, narration or font files are included in this checkpoint.
+The 48 PNG files currently in `assets/organisms` are unmodified original artwork from the pinned commit. Their byte lengths and Git blob hashes match `docs/ASSET_MANIFEST.json`. The original authored journey and mutation text is carried into `data/journey.json`; original creature names and descriptions are retained in `src/content/creatureCatalogue.ts`. No original audio, narration or font files are included in this checkpoint.
 
 The seeded RNG adapts PCG32 by M.E. O'Neill (Apache-2.0) and Godot RandomPCG range sampling (MIT). Applicable notices are retained in `licenses/PCG.txt` and `licenses/Godot.txt`. The mobile engine is a TypeScript adaptation, not a distribution of the Godot engine.
 
