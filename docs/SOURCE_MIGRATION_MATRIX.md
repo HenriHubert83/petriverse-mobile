@@ -19,7 +19,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/creature_forms.gd` | `src/campaign/creatureForms.ts` | Pending |
 | `scripts/cyst_nudge.gd` | `src/ecology/cystNudge.ts` | Pending |
 | `scripts/dish_labels.gd` | `src/components/dishLabels.ts` | Pending |
-| `scripts/drifter.gd` | `src/ecology/drifter.ts` | Pending |
+| `scripts/drifter.gd` | `src/ecology/drifter.ts` | Implemented / local behavior tests passed; full ecosystem integration pending |
 | `scripts/ecology_enemy.gd` | `src/ecology/ecologyEnemy.ts` | Pending |
 | `scripts/encounter.gd` | `src/campaign/encounter.ts` | Scope review pending |
 | `scripts/encounter_rhythm.gd` | `src/campaign/encounterRhythm.ts` | Pending |
@@ -32,7 +32,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/habitat_events.gd` | `src/campaign/habitatEvents.ts` | Pending |
 | `scripts/harvest.gd` | `src/campaign/harvest.ts` | Scope review pending |
 | `scripts/harvest_flow.gd` | `src/campaign/harvestFlow.ts` | Pending |
-| `scripts/harvest_organism.gd` | `src/ecology/harvestOrganism.ts` | Pending |
+| `scripts/harvest_organism.gd` | `src/ecology/harvestOrganism.ts` | Implemented / local behavior tests passed; full harvest integration pending |
 | `scripts/home_pond.gd` | `src/components/homePond.ts` | Pending |
 | `scripts/hud.gd` | `src/components/hud.ts` | Pending |
 | `scripts/injury_motes.gd` | `src/rendering/injuryMotes.ts` | Pending |
@@ -86,17 +86,17 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `shaders/depth_tissue.gdshader` | `src/rendering/shaders/depthTissue.ts` | Pending |
 | `shaders/fused_tissue.gdshader` | `src/rendering/shaders/fusedTissue.ts` | Pending |
 | `shaders/lens_optics.gdshader` | `src/rendering/shaders/lensOptics.ts` | Pending |
-| `shaders/living_bridge.gdshader` | `src/rendering/shaders/livingBridge.ts` | Pending |
+| `shaders/living_bridge.gdshader` | `src/rendering/shaders/livingBridge.ts` | SkSL source translated / child image sampling and native compilation pending |
 | `shaders/living_cilia.gdshader` | `src/rendering/shaders/livingCilia.ts` | Pending |
 | `shaders/living_tissue.gdshader` | `src/rendering/shaders/livingTissue.ts` | Pending |
 | `shaders/membrane.gdshader` | `src/rendering/shaders/membrane.ts` | SkSL source translated and wired to diagnostic / native compilation and visual comparison pending |
 | `shaders/microscope_field.gdshader` | `src/rendering/shaders/microscopeField.ts` | Pending |
 | `shaders/organic_motion.gdshaderinc` | `src/rendering/shaders/organicMotion.ts` | SkSL source translated / native compilation pending |
 | `shaders/phage.gdshader` | `src/rendering/shaders/phage.ts` | Pending |
-| `shaders/pond_optics.gdshaderinc` | `src/rendering/shaders/pondOptics.ts` | Pending |
+| `shaders/pond_optics.gdshaderinc` | `src/rendering/shaders/pondOptics.ts` | SkSL source translated / native compilation pending |
 | `shaders/pond_specimen.gdshader` | `src/rendering/shaders/pondSpecimen.ts` | Pending |
 | `shaders/pond_suspension.gdshader` | `src/rendering/shaders/pondSuspension.ts` | Pending |
-| `shaders/water_interaction.gdshaderinc` | `src/rendering/shaders/waterInteraction.ts` | Pending |
+| `shaders/water_interaction.gdshaderinc` | `src/rendering/shaders/waterInteraction.ts` | SkSL source translated / raw fluid texture and native compilation pending |
 | `shaders/water_tracers.gdshader` | `src/rendering/shaders/waterTracers.ts` | Pending |
 | `tests/amoeba.gd` | `tests/amoeba.test.ts` | Pending |
 | `tests/amoeba_membrane_reel.gd` | `tests/amoebaMembraneReel.test.ts` | Pending |
