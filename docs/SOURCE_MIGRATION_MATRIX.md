@@ -4,23 +4,23 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 
 | Original source | Proposed mobile target | Status |
 |---|---|---|
-| `scripts/amoeba.gd` | `src/ecology/amoeba.ts` | Pending |
+| `scripts/amoeba.gd` | `src/ecology/amoeba.ts` | Implemented / local crawl and captivity tests passed; native visual integration pending |
 | `scripts/amoeba_outline.gd` | `src/rendering/amoebaOutline.ts` | Pending |
-| `scripts/amoeba_system.gd` | `src/ecology/amoebaSystem.ts` | Pending |
+| `scripts/amoeba_system.gd` | `src/ecology/amoebaSystem.ts` | Implemented / local reservation, captivity, rescue and deadline tests passed; full journey/save integration pending |
 | `scripts/amoeba_visual.gd` | `src/rendering/amoebaVisual.ts` | Pending |
-| `scripts/bacterium.gd` | `src/ecology/bacterium.ts` | Pending |
+| `scripts/bacterium.gd` | `src/ecology/bacterium.ts` | Implemented / local infection tests passed; food competitor AI pending |
 | `scripts/board.gd` | `src/geometry/board.ts` | Implemented / local regression tests passed; upstream integration pending |
 | `scripts/capture_feedback.gd` | `src/geometry/captureFeedback.ts` | Pending |
 | `scripts/cell.gd` | `src/geometry/cell.ts` | Implemented / local regression tests passed; upstream integration pending |
 | `scripts/clot.gd` | `src/geometry/clot.ts` | Implemented / local recovery tests passed; run and rendering integration pending |
-| `scripts/conjoined.gd` | `src/ecology/conjoined.ts` | Pending |
+| `scripts/conjoined.gd` | `src/ecology/conjoined.ts` | Implemented / legacy boss cycle tests passed; current journey boss is separate |
 | `scripts/creature_cinema.gd` | `src/cinema/creatureCinema.ts` | Pending |
 | `scripts/creature_film_stage.gd` | `src/cinema/creatureFilmStage.ts` | Pending |
 | `scripts/creature_forms.gd` | `src/campaign/creatureForms.ts` | Pending |
 | `scripts/cyst_nudge.gd` | `src/ecology/cystNudge.ts` | Pending |
 | `scripts/dish_labels.gd` | `src/components/dishLabels.ts` | Pending |
 | `scripts/drifter.gd` | `src/ecology/drifter.ts` | Implemented / local behavior tests passed; full ecosystem integration pending |
-| `scripts/ecology_enemy.gd` | `src/ecology/ecologyEnemy.ts` | Pending |
+| `scripts/ecology_enemy.gd` | `src/ecology/ecologyEnemy.ts` | Implemented / local movement tests passed; destination assignment and food web pending |
 | `scripts/encounter.gd` | `src/campaign/encounter.ts` | Scope review pending |
 | `scripts/encounter_rhythm.gd` | `src/campaign/encounterRhythm.ts` | Pending |
 | `scripts/evolution_anatomy.gd` | `src/evolution/evolutionAnatomy.ts` | Pending |
@@ -63,8 +63,8 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/mutation_card.gd` | `src/components/mutationCard.ts` | Pending |
 | `scripts/mutations.gd` | `src/evolution/mutations.ts` | Partial / captureRules.ts recovery, damage and limits tested; catalogue and offers pending |
 | `scripts/organism_arrival.gd` | `src/ecology/organismArrival.ts` | Pending |
-| `scripts/phage_cluster.gd` | `src/ecology/phageCluster.ts` | Pending |
-| `scripts/phage_system.gd` | `src/ecology/phageSystem.ts` | Pending |
+| `scripts/phage_cluster.gd` | `src/ecology/phageCluster.ts` | Implemented / local attachment and lifetime integration pending full journey |
+| `scripts/phage_system.gd` | `src/ecology/phageSystem.ts` | Implemented / local infection, rupture, salvage and snapshot tests passed; full journey, nudge and save validation pending |
 | `scripts/phage_visual.gd` | `src/rendering/phageVisual.ts` | Pending |
 | `scripts/pond_life.gd` | `src/rendering/pondLife.ts` | Pending |
 | `scripts/producer_lab.gd` | `src/fixtures/producerLab.ts` | Scope review pending |
@@ -98,7 +98,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `shaders/pond_suspension.gdshader` | `src/rendering/shaders/pondSuspension.ts` | Pending |
 | `shaders/water_interaction.gdshaderinc` | `src/rendering/shaders/waterInteraction.ts` | SkSL source translated / raw fluid texture and native compilation pending |
 | `shaders/water_tracers.gdshader` | `src/rendering/shaders/waterTracers.ts` | Pending |
-| `tests/amoeba.gd` | `tests/amoeba.test.ts` | Pending |
+| `tests/amoeba.gd` | `tests/amoeba.test.ts` | Partial / specializedEcology.test.ts covers core crawl, safe rescue site, captivity and recovery; original full run and save assertions pending |
 | `tests/amoeba_membrane_reel.gd` | `tests/amoebaMembraneReel.test.ts` | Pending |
 | `tests/amoeba_motion.gd` | `tests/amoebaMotion.test.ts` | Pending |
 | `tests/amoeba_pixels.gd` | `tests/amoebaPixels.test.ts` | Pending |
@@ -168,7 +168,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `tests/onboarding.gd` | `tests/onboarding.test.ts` | Pending |
 | `tests/petriverse_trailer_capture.gd` | `tests/petriverseTrailerCapture.test.ts` | Pending |
 | `tests/phage_visuals.gd` | `tests/phageVisuals.test.ts` | Pending |
-| `tests/phages.gd` | `tests/phages.test.ts` | Pending |
+| `tests/phages.gd` | `tests/phages.test.ts` | Partial / specializedEcology.test.ts covers host filtering, infection deadline, rupture and snapshot; nudge, journey rewards, pause and full save assertions pending |
 | `tests/pond_cohesion_reel.gd` | `tests/pondCohesionReel.test.ts` | Pending |
 | `tests/pond_memories.gd` | `tests/pondMemories.test.ts` | Pending |
 | `tests/pond_memories_visual.gd` | `tests/pondMemoriesVisual.test.ts` | Pending |
