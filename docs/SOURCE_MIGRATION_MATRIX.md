@@ -2,25 +2,27 @@
 
 Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is accounted for; destination paths are proposed. Pending means not ported; Implemented/unverified means code exists but parity tests are not executed; Verified requires regression evidence. Test files may map to multiple tests and visual fixtures require device evidence.
 
+2026-11-25 update: native integration now has an initial user-reported iPhone landscape playtest through Expo Go, shown at encounter 3 of 15. This does not verify every row or constitute complete visual/gameplay parity. Use FEATURE_PARITY.md for the current whole-game status and ENCOUNTER_ENGINE.md for the integrated runtime boundary; historical local test results are not new executions.
+
 | Original source | Proposed mobile target | Status |
 |---|---|---|
 | `scripts/amoeba.gd` | `src/ecology/amoeba.ts` | Implemented / local crawl and captivity tests passed; native visual integration pending |
 | `scripts/amoeba_outline.gd` | `src/rendering/amoebaOutline.ts` | Pending |
-| `scripts/amoeba_system.gd` | `src/ecology/amoebaSystem.ts` | Implemented / local reservation, captivity, rescue and deadline tests passed; full journey/save integration pending |
+| `scripts/amoeba_system.gd` | `src/ecology/amoebaSystem.ts` | Implemented / reservation, captivity, rescue and deadline tests passed; integrated encounter; durable saves pending |
 | `scripts/amoeba_visual.gd` | `src/rendering/amoebaVisual.ts` | Pending |
-| `scripts/bacterium.gd` | `src/ecology/bacterium.ts` | Implemented / local infection tests passed; food competitor AI pending |
+| `scripts/bacterium.gd` | `src/ecology/bacterium.ts` | Implemented / infection and encounter food-competitor behavior integrated; full source/device parity pending |
 | `scripts/board.gd` | `src/geometry/board.ts` | Implemented / local regression tests passed; upstream integration pending |
 | `scripts/capture_feedback.gd` | `src/geometry/captureFeedback.ts` | Pending |
 | `scripts/cell.gd` | `src/geometry/cell.ts` | Implemented / local regression tests passed; upstream integration pending |
-| `scripts/clot.gd` | `src/geometry/clot.ts` | Implemented / local and headless encounter recovery tests passed; native rendering pending |
+| `scripts/clot.gd` | `src/geometry/clot.ts` | Implemented / CPU recovery tests passed and native view connected; detailed native recovery presentation validation pending |
 | `scripts/conjoined.gd` | `src/ecology/conjoined.ts` | Implemented / legacy boss cycle tests passed; current journey boss is separate |
 | `scripts/creature_cinema.gd` | `src/cinema/creatureCinema.ts` | Pending |
 | `scripts/creature_film_stage.gd` | `src/cinema/creatureFilmStage.ts` | Pending |
 | `scripts/creature_forms.gd` | `src/campaign/creatureForms.ts` | Pending |
-| `scripts/cyst_nudge.gd` | `src/ecology/cystNudge.ts` | Implemented / all nudge regression groups now executed and passed; native gestures pending |
+| `scripts/cyst_nudge.gd` | `src/ecology/cystNudge.ts` | Implemented / nudge regressions passed and mobile gestures connected; focused native nudge test pending |
 | `scripts/dish_labels.gd` | `src/components/dishLabels.ts` | Pending |
-| `scripts/drifter.gd` | `src/ecology/drifter.ts` | Implemented / local behavior tests passed; full ecosystem integration pending |
-| `scripts/ecology_enemy.gd` | `src/ecology/ecologyEnemy.ts` | Implemented / local movement tests passed; destination assignment and food web pending |
+| `scripts/drifter.gd` | `src/ecology/drifter.ts` | Implemented / behavior tests passed and encounter ecosystem connected; complete species/form parity pending |
+| `scripts/ecology_enemy.gd` | `src/ecology/ecologyEnemy.ts` | Implemented / movement, destination assignment and food web connected; complete ecology/source parity pending |
 | `scripts/encounter.gd` | `src/campaign/encounter.ts` | Scope review pending |
 | `scripts/encounter_rhythm.gd` | `src/campaign/encounterRhythm.ts` | Implemented / source pacing used by arrival director; CPU warning timing covered, native presentation pending |
 | `scripts/evolution_anatomy.gd` | `src/evolution/evolutionAnatomy.ts` | Pending |
@@ -32,7 +34,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/habitat_events.gd` | `src/campaign/habitatEvents.ts` | Partial / authored event timing and currents tested; creature forms and final traveller visual pending |
 | `scripts/harvest.gd` | `src/campaign/harvest.ts` | Scope review pending |
 | `scripts/harvest_flow.gd` | `src/campaign/harvestFlow.ts` | Pending |
-| `scripts/harvest_organism.gd` | `src/ecology/harvestOrganism.ts` | Implemented / behavior and capture reward integration tested; wave/content scheduling pending |
+| `scripts/harvest_organism.gd` | `src/ecology/harvestOrganism.ts` | Implemented / behavior, capture rewards and bloom/arrival scheduling integrated; complete creature forms pending |
 | `scripts/home_pond.gd` | `src/components/homePond.ts` | Pending |
 | `scripts/hud.gd` | `src/components/hud.ts` | Pending |
 | `scripts/injury_motes.gd` | `src/rendering/injuryMotes.ts` | Pending |
@@ -43,8 +45,8 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/journey_guidance.gd` | `src/components/journeyGuidance.ts` | Pending |
 | `scripts/journey_habitats.gd` | `src/campaign/journeyHabitats.ts` | Pending |
 | `scripts/journey_harvest.gd` | `src/campaign/journeyHarvest.ts` | Partial / blooms, refill, capture rewards, goals and ecology integration tested; discoveries, habitats and legacy finale pending |
-| `scripts/journey_hud.gd` | `src/mobile/GameScreen.tsx` | Partial / mobile objectives, colony status and encounter states implemented; native layout and full HUD parity pending |
-| `scripts/journey_lesson.gd` | `src/campaign/journeyLesson.ts` | Implemented / two captures and recovery tested through phone-coordinate controller; native play test pending |
+| `scripts/journey_hud.gd` | `src/mobile/GameScreen.tsx` | Partial / mobile objectives, colony status and encounter states visible in iPhone playtest; full HUD parity pending |
+| `scripts/journey_lesson.gd` | `src/campaign/journeyLesson.ts` | Implemented / two captures and recovery tested through phone-coordinate controller; initial iPhone gameplay reported, detailed lesson/device validation pending |
 | `scripts/journey_mastery.gd` | `src/campaign/journeyMastery.ts` | Implemented / guardian, gatherer, clear-water awards, cap and deduplication tested; profile/home-pond integration pending |
 | `scripts/journey_plan.gd` | `src/campaign/journeyPlan.ts`, `data/journey.json` | Partial / original stages, dishes and colonies imported; full species/form catalogue pending |
 | `scripts/journey_profile.gd` | `src/storage/journeyProfile.ts` | Pending |
@@ -54,8 +56,8 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/loop_geometry.gd` | `src/geometry/loopGeometry.ts` | Implemented / 4 local tests passed; upstream parity pending |
 | `scripts/loop_resolver.gd` | `src/geometry/loopResolver.ts` | Partial / shared capture and real journey reward dispatch tested; legacy resolver branch pending |
 | `scripts/loop_strain.gd` | `src/geometry/loopStrain.ts` | Implemented / local tests passed |
-| `scripts/main.gd` | `src/engine/main.ts` | Pending |
-| `scripts/microscope.gd` | `src/rendering/EncounterView.tsx`, `src/rendering/organismTextures.ts` | Partial / original base textures, dimensions and nucleus offsets wired to model; full shader/visual parity and device verification pending |
+| `scripts/main.gd` | `App.tsx`, `src/mobile/GameScreen.tsx`, `src/mobile/simulationClock.ts` | Partial / mobile game loop, background pause and touch cancellation implemented; original save/profile/title/settings integration pending |
+| `scripts/microscope.gd` | `src/rendering/EncounterView.tsx`, `src/rendering/organismTextures.ts` | Partial / original base textures visible in initial iPhone playtest; full shader/visual parity and broader device verification pending |
 | `scripts/mission_appearance.gd` | `src/rendering/missionAppearance.ts` | Pending |
 | `scripts/mother_alert.gd` | `src/engine/motherAlert.ts` | Pending |
 | `scripts/mother_appearance.gd` | `src/rendering/motherAppearance.ts` | Pending |

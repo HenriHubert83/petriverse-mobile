@@ -2,7 +2,7 @@
 
 Reference: Petriverse 0.3.0, commit `be96d3e0641571cc37255fb8701ea83e20c28aee`. The free, offline, landscape iOS/Android scope is unchanged.
 
-`App.tsx` now opens `GameScreen`, which drives a `JourneySession` and draws its current `EncounterSimulation` through `EncounterView`. The former synthetic diagnostic remains available as a development component. This screen has not yet been launched in Expo or on a device.
+`App.tsx` opens `GameScreen`, which drives a `JourneySession` and draws its current `EncounterSimulation` through `EncounterView`. The former synthetic diagnostic remains available as a development component. On 2026-11-25 Henri confirmed actual play through Expo Go on a physical iPhone in landscape; his screenshot shows encounter 3 of 15. This is the first reported native playtest, with broader device validation still pending.
 
 ## Runtime boundary
 
@@ -47,6 +47,10 @@ All **87 CPU test groups passed**, with zero failures, skips or cancellations: t
 
 Execution used Node 24.22.3's built-in TypeScript transform and a temporary ESM loader for extensionless local imports, erased type imports and JSON. Repository sources and assertions were not rewritten. The normal project command is `npm test` using `tsx`. `App.tsx`, `GameScreen.tsx`, `EncounterView.tsx` and the texture registry also parsed/transformed with the installed Playwright Babel bundle. Asset sizes and Git blob hashes were checked independently.
 
-These checks do **not** constitute full TypeScript checking, a Godot differential run, a full gameplay playthrough, a native render or a performance benchmark. npm registry access remains blocked in this environment. Dependency installation/lockfile, Expo compatibility checks, GPU compilation and iOS/Android device testing remain outstanding. No dependency versions were changed.
+Those original local checks alone did **not** constitute full TypeScript checking, a Godot differential run, a full gameplay playthrough, a native render or a performance benchmark. At that point npm access was unavailable and no dependency versions had changed.
 
-Next: install and validate the declared Expo dependencies on a supported host, run typecheck and device builds, then verify image decoding, membrane shader fallback, touch accuracy, layout, interruption/resume and sustained frame/memory behavior. Keep the remaining complete-game work tracked in FEATURE_PARITY.md.
+Subsequently, Replit installed and locked compatible dependencies, corrected three compatibility issues and reported `npm test` (87 passed), full typecheck, dependency checks and all 20 Expo Doctor checks passing. Metro generated iOS and Android development bundles. These setup changes are preserved on GitHub through `11e965a07deae2a1a5c348c234df57230e5fb75f`.
+
+Henri then reported the physical-iPhone landscape playtest described above. The screenshot supports visible organism rendering, layout and progression to encounter 3; his report confirms basic playability. It does not establish a full playthrough, individual shader/fallback behavior, focused interruption testing or sustained performance. No Android physical-device result is recorded. No new automated test execution is claimed by this documentation update.
+
+Next: port the original full mid-encounter save/profile and title-menu flow with validated backup recovery and tests. Continue targeted device validation of touch accuracy, image/shader presentation, interruption/resume and sustained frame/memory behavior alongside the remaining complete-game work in FEATURE_PARITY.md.

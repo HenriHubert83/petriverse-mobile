@@ -47,8 +47,15 @@ Skia 2.14's `PathBuilder`, and a mutable copy in the geometry-copy regression
 fixture. React type definitions and TypeScript match Expo's recommendations;
 `expo-asset` is explicit because `expo-audio` requires it.
 
-No iPhone or Android device was connected during setup. Native GPU/shader
-execution, texture decoding, touch interactions, physical landscape layout,
-pause/resume and sustained performance remain unverified. Do not interpret
-bundling or CPU tests as native gameplay validation. Journey progress is still
-in memory and is lost when the application closes.
+No physical device was connected during the setup checks above. Subsequently,
+on 2026-11-25, Henri confirmed the game was running and playable in Expo Go on
+his physical iPhone in landscape. His screenshot shows encounter 3 of 15.
+This is an initial native rendering and basic interaction playtest. The device
+model/iOS version, focused interruption handling, full playthrough, detailed
+shader/fallback behavior and sustained performance have not been recorded.
+Android physical-device validation remains outstanding.
+
+The four setup commits were pushed to `phase-02-foundation`, ending at
+`11e965a07deae2a1a5c348c234df57230e5fb75f`, and verified on GitHub. Journey
+progress is still in memory and is lost when the application closes. Basic
+background pausing exists; durable save/resume is the next porting increment.
