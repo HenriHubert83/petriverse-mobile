@@ -1,42 +1,52 @@
-# Encounter engine checkpoint
+# Encounter and mobile integration checkpoint
 
 Reference: Petriverse 0.3.0, commit `be96d3e0641571cc37255fb8701ea83e20c28aee`. The free, offline, landscape iOS/Android scope is unchanged.
 
-`src/engine/encounterSimulation.ts` connects the existing CPU models into one encounter. It accepts an explicit encounter specification and caller-supplied organisms. It does not generate the journey or populate a playable level. `App.tsx` still renders the synthetic diagnostic.
+`App.tsx` now opens `GameScreen`, which drives a `JourneySession` and draws its current `EncounterSimulation` through `EncounterView`. The former synthetic diagnostic remains available as a development component. This screen has not yet been launched in Expo or on a device.
 
 ## Runtime boundary
 
 | Entry point | Behavior |
 |---|---|
-| Constructor | Creates the board, cells, fluid, health model, input and ecology systems in `brief` state. Optional `encounterIndex` identifies a generated route visit; absent means an authored stage. |
-| `addBody(body)` | Adds an instantiated organism and reserves its ID. Source wave scheduling and form assignment remain pending. |
-| `begin()` | Enters `active` from `brief`. |
-| `selection.start/drag/visit`, `release()` | Uses existing geometry and readiness checks, spends cells, applies harvest consequences, creates a recovery clot and evaluates the encounter goals. Native gesture and screen-coordinate adapters remain pending. |
-| `harvestPreview()` | Uses the same reward ledger as a real capture, including mutation bonuses, armor, salvage and poison. |
-| `step(delta)` | Advances water, board, recovery, injuries, existing organisms, contacts, phages, amoebas, food-web behavior and goals. Combat time is clamped to the encounter deadline. |
-| `togglePause()` | Cancels gestures and freezes simulation clocks, injuries, recovery and fluid until resumed. |
-| `complete` / `loss` | Freezes combat and board motion while recovery and injury aftermath finish. `complete` is an integration boundary for future route progression, not a claim that the whole journey ended. |
+| `new JourneySession(seed)` | Builds 12 authored stages plus 3 seeded visits and creates the opening briefing. The default colony is the Wanderer. |
+| `new EncounterSimulation(spec, options)` | Creates an isolated encounter. `content: true` adds blooms, rescue spores, bosses, ecology and a guided first lesson. The default remains supplied-content mode for CPU fixtures. |
+| `session.begin()` | Applies a default Guard if a new organelle was left undecided, then enters active play. |
+| `TouchController` | Converts screen coordinates to the original board, owns one pointer and dispatches membrane or nudge gestures. Second fingers, termination, bounds exit, resize and pause cancel without capture. |
+| `capture`, `release`, `harvestPreview` | Share nucleus eligibility and reward rules. Committed captures spend cells, absorb prey, update food/health/score, create recovery clots and check goals. |
+| `session.update(delta)` | Advances the encounter and observes completion once. Native presentation supplies fixed 1/60-second steps through a clock with bounded catch-up. |
+| `chooseEvolution(id)` | Validates offers and food costs, or heals/continues, then carries colony state into the next briefing. Generated visits suppress offers; six traits is the maximum. |
+| `retry()` | Restores entry colony state and the pre-content RNG, rebuilding the same encounter and healing to at least three organelles. Failed-attempt rewards are discarded. This is an in-memory checkpoint, not save-file recovery. |
+| Pause / application interruption | Cancels input and freezes simulation. Returning from the background requires Resume during active play; suspended wall time is discarded. |
+| Final encounter | Awards the ending health bonus once, clears enemies and presents the journey result. |
 
-## Preserved rules
+## Content and preserved rules
 
-- Food and poison are independent. Pure-cyst purification, one-cyst filtering, mutation food bonuses, active feeder roles, stored-food salvage and the 30-food bank cap follow the pinned source. Excess food still advances objectives and scoring.
-- Captures resolve armor, shared nuclei, amoeba rescue, spore identity, mastery, capture grades, three-second flow chains, frenzy, lure, residual membranes and nursery healing. Mastery grants banked food and score without advancing required nourishment.
-- Contacts are sorted and processed as a batch, including surplus attackers after lethal damage. Guards intercept once per current encounter. Each unguarded hit claims an intact Mother organelle with its own 2.2-second aftermath.
-- Bellwether, Regent and Conjoined retain their phase models. Boss strikes require three nourishment already stored before the meal; they remove one layer. Regent gates open a 14-second opportunity and an incomplete shield pair regrows after 18 seconds. Conjoined surviving hits spawn young twinspores.
-- Encounter completion requires nourishment and the relevant objective. Generated feed visits at stage 4 or later require two captured hunters. Poison loss takes priority over satisfying the goal; a completed goal at the exact deadline succeeds. Health, swift-finish and clear-water rewards are applied once.
+- `data/journey.json` carries the original stages, dishes, colony descriptions and mutation catalogue. `journeyRoute.ts` inserts Small allies and two later generated visits in the original sequence. PCG32 uses 64-bit BigInt state; range sampling follows Godot's standard float build. Route generation has its own seeded stream.
+- The guided opening freezes the encounter deadline, preserves its food and teaches a small three-cell capture followed by a wide six-cell capture. Advancement waits for cells to recover.
+- Blooms use authored geometry and food/cyst placement. Food shortage can advance a refill without moving the hunter clock. The director warns eight seconds before arrivals, selects biome/species families and preserves the quiet Small allies introduction. Boss modes create Bellwether, Regent or Conjoined with their existing phase and gate models.
+- Ordinary ecology includes food theft and stored-food salvage, parasite cell blocking, divider daughters, amoeba captivity/rescue, phage infection and protected cradle hatching. Migration, hatching and deep-traveller events use source timing and bounded currents.
+- Food, poison, purification, filtering, mutation food bonuses, feeder roles and the 30-food bank cap remain independent of score. Mastery grants food and score without advancing required nourishment. Boss strikes require three nourishment already stored before the meal.
+- Mother grows from three to seven organelles. Guards, nearest-core damage, healing and aftermath retain their CPU models. Captures resolve shared nuclei, armor, rescue, mastery, flow, grades, frenzy, lure, residual membranes and nursery healing.
+- Goals require nourishment plus the relevant objective. Generated feed visits at stage 4 or later require two hunters. Lethal poison takes priority; a fulfilled goal at the deadline succeeds. Health, swift-finish and final-journey bonuses are applied once.
+
+## Mobile presentation
+
+The screen provides landscape safe areas, an objective/health sidebar, briefing, growth choice, pause, retry, adaptation choices and final result. Rendering uses the actual board, organisms, recovery positions, selection polygon, shield links, parasite tethers and arrival markers. Touch selection has a minimum 14-screen-point radius while capture geometry remains unchanged. Guidance sits below the dish so it does not obscure cells.
+
+Twenty-one original PNGs (38,573,387 bytes) were verified against the pinned manifest and imported unchanged. Each needed texture is loaded once per active texture key, shared between sprites and released from the view cache when unused. Base sprite dimensions and nucleus offsets follow `microscope.gd`. Clots use the existing CPU recovery model; water tracers use the previously ported low-quality count. Membrane RuntimeEffect compilation has a translucent fallback. Rendering refreshes at up to 30 Hz while active simulation advances at 60 Hz. Terminal animation stops after remaining effects finish.
+
+These are implementation details, not measured device performance. Tissue deformation, detailed ingestion, optical refraction, original particle shaders, full Mother injury visuals, complete creature-form art, original fonts and audio remain unfinished. Base art currently represents alternate forms. The traveller's visual is a temporary submerged glow, while its current rule is implemented.
 
 ## Still outside this checkpoint
 
-Campaign plans and route generation; bloom replenishment and warning/wave scheduling; competitor decisions for grazers, bacteria, parasites and dividers; cradle hatching; rare visitor scheduling and complete creature-form definitions; habitats; lessons; evolution offers and repairs; growth progression; legacy 30-encounter final surges and guard rest; final-journey bonuses; save validation and retry; native gestures, rendering, audio and UI.
-
-Only the two expedition spore IDs needed to classify rescued specimens are carried into the harvest port. This is not a full expedition or form-catalogue port. Class properties remain mutable for controlled fixtures; persisted data must eventually enter through a validated save layer.
+Durable journey/profile/preferences saves and migrations; home pond/resident management; creature-form assignment, rare visitors and expeditions; habitat route choices; colony unlock/selection; narrated discoveries and field journal; settings/accessibility/reduced-motion controls; complete audio/visual effects; legacy 30-encounter save compatibility and final surges. Form assignment and discovery draws are absent from the encounter RNG stream, so this is not an exact same-seed Godot encounter replay. The native app does not yet preserve progress after process termination.
 
 ## Verification on 2026-11-25
 
-All **67 test groups passed**, with zero failures, skips or cancellations: the 46 existing tests plus 21 new groups in `tests/encounterSimulation.test.ts`. These exercise real Board/Input/Resolver/Harvest/Clot integration, damage and healing, mutation ledgers, armor, mastery, amoeba return, phage salvage, food-web recovery, boss phases and gates, objectives, deadlines and pause.
+All **87 CPU test groups passed**, with zero failures, skips or cancellations: the prior 67 plus 20 content, mobile-input and session groups. New coverage includes the opening tutorial through phone-sized coordinate traces, PCG32 output against independently compiled original C++, seeded route structure, arrival windows, refill limits, authored events, food theft, divider/cradle hatching, all fifteen progression transitions, adaptation affordability, retry rollback, pointer interruption and frame-clock timing.
 
-Executed with Node 24.22.3's built-in TypeScript transform and a temporary ESM loader for extensionless local imports, erased type imports and JSON modules. Repository sources and assertions were executed without copying or editing them for the runner. Normal project command remains `npm test` using `tsx` when dependencies are installed. These are runtime assertions, **not a TypeScript typecheck** or a differential run against Godot. Important source fixtures include `tests/journey_mutations.gd`, `tests/journey_rules.gd` and the CPU portions of `tests/mother_damage.gd`; their full suites and visual assertions have not been ported.
+Execution used Node 24.22.3's built-in TypeScript transform and a temporary ESM loader for extensionless local imports, erased type imports and JSON. Repository sources and assertions were not rewritten. The normal project command is `npm test` using `tsx`. `App.tsx`, `GameScreen.tsx`, `EncounterView.tsx` and the texture registry also parsed/transformed with the installed Playwright Babel bundle. Asset sizes and Git blob hashes were checked independently.
 
-The current environment blocks access to the npm registry. No package installation, full-project typecheck, Expo build, GPU compile, asset rendering, iOS/Android launch or device benchmark was performed. No dependency versions or package lockfile were changed in this checkpoint.
+These checks do **not** constitute full TypeScript checking, a Godot differential run, a full gameplay playthrough, a native render or a performance benchmark. npm registry access remains blocked in this environment. Dependency installation/lockfile, Expo compatibility checks, GPU compilation and iOS/Android device testing remain outstanding. No dependency versions were changed.
 
-Next: connect source-authored content and wave scheduling to this model, then drive a touch/Skia encounter with original assets on a supported Expo development host. Keep current CPU tests as regression coverage while adding route, save and native integration checks.
+Next: install and validate the declared Expo dependencies on a supported host, run typecheck and device builds, then verify image decoding, membrane shader fallback, touch accuracy, layout, interruption/resume and sustained frame/memory behavior. Keep the remaining complete-game work tracked in FEATURE_PARITY.md.

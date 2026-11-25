@@ -1,5 +1,5 @@
-// Capture, scoring and objective subset of prototype/scripts/journey_harvest.gd.
-// Bloom/director setup, lessons, habitat events and legacy final surge are pending.
+// Capture, scoring, blooms and ordinary encounter rules from journey_harvest.gd.
+// Discovery visitors and legacy final surge remain separate migration work.
 // See CREDITS.md and LICENSE.
 import type {Point} from '../geometry/loopGeometry';
 import {distanceToSegment} from '../geometry/loopGeometry';
@@ -14,10 +14,15 @@ import {EncounterEcology} from '../ecology/encounterEcology';
 import {JourneyBoss} from './journeyBoss';
 import {captureMastery} from './journeyMastery';
 import type {Feat} from './journeyMastery';
+import {BLOOM_CYCLE} from './encounterRhythm';
+import {HabitatEvents} from './habitatEvents';
 
 export interface EncounterSpec {
   stage:number;mode:'feed'|'rescue'|'purify'|'defend'|'sectors'|'boss';
   food:number;target:number;duration:number;generated?:boolean;
+  name?:string;lesson?:string;threats?:number;featured?:string;families?:readonly string[];
+  hunter?:string;sectorStep?:number;phageLesson?:boolean;
+  event?:'migration'|'hatching'|'traveller';eventAt?:number;
 }
 export interface HarvestOutcome {
   food:number;poison:number;threats:number;rescued:number;purified:number;rawFood:number;
@@ -33,10 +38,64 @@ const EXPEDITION_SPORES=new Set(['glasswing_spore','comet_spore']);
 export const FLOW_WINDOW=3,FLOW_STEP=40;
 export class JourneyHarvest {
   readonly ecology=new EncounterEcology();
+  readonly events=new HabitatEvents();
   nourishment=0;poisonTaken=0;rescued=0;purified=0;defended=0;visited:number[]=[];
   cleanFood=0;huntersCaptured=0;bossHits=0;flow=0;bestFlow=0;lastFlowTime=-100;
   lossTitle='The mother died.';lossReason='';rotation=0;
+  blooms=0;sporesSpawned=0;threatsSpawned=0;nextBloom=18;lastRefill=0;
   constructor(readonly spec:Readonly<EncounterSpec>){}
+
+  begin(run:EncounterSimulation):void{
+    this.rotation=run.rng.int(0,7);
+    for(const area of run.stageIndex===0?[0,3,6]:this.spec.mode==='boss'?[0]:[0,3])this.spawnBloom(run,(this.rotation+area)%8);
+    this.nextBloom=run.stageIndex>0?BLOOM_CYCLE:18;
+    if(this.spec.mode==='rescue')this.spawnSpore(run);
+    if(this.spec.mode==='boss'){
+      const boss=new JourneyBoss(++run.nextEnemyId,run.board,Math.floor(run.stageIndex/4) as 0|1|2);
+      run.enemies.push(boss);run.discover(boss.kind);
+    }
+    run.discover('food');run.discover('cyst');this.ecology.begin(run);this.events.begin(run);
+  }
+  spawnBloom(run:EncounterSimulation,sector:number):void{
+    const next=(sector+1)%8,anchors=run.board.anchors;
+    const a=anchors[sector],b=anchors[8+sector],c=anchors[8+next],d=anchors[next];
+    const phase=run.rng.float(0,2*Math.PI),rich=scale(add(add(a,c),d),1/3);
+    const outward=unit(sub(rich,run.board.center)),tangent={x:outward.y,y:-outward.x};
+    const sites=[add(add(scale(a,0.25),scale(b,0.45)),scale(c,0.30)),
+      add(add(scale(a,0.25),scale(b,0.23)),scale(c,0.52)),add(add(scale(a,0.48),scale(b,0.26)),scale(c,0.26)),
+      sub(add(rich,scale(tangent,26)),scale(outward,9)),sub(sub(rich,scale(tangent,25)),scale(outward,8)),
+      add(rich,scale(tangent,6)),add(sub(rich,scale(tangent,13)),scale(outward,10))];
+    this.blooms++;
+    for(let i=0;i<sites.length;i++){
+      const body=new HarvestOrganism(++run.nextEnemyId,i<5?'food':'cyst',sites[i],i<3?{x:8,y:6}:{x:16,y:13},phase+i*1.71);
+      body.bloomId=this.blooms;
+      if(i>=5&&['purify','boss'].includes(this.spec.mode)){
+        const outerA=anchors[8+sector],outerB=anchors[16+sector],outerC=anchors[16+next];
+        body.origin=add(add(scale(outerA,0.25),scale(outerB,i===5?0.48:0.27)),scale(outerC,i===5?0.27:0.48));
+        body.nucleus={...body.origin};body.drift={x:7,y:5};
+      }
+      run.enemies.push(body);
+    }
+  }
+  spawnSpore(run:EncounterSimulation,area=-1):void{
+    const sector=area<0?(this.rotation+this.sporesSpawned*3+1)%8:area,a=run.board.anchors;
+    const at=scale(add(add(a[8+sector],a[16+sector]),a[16+(sector+1)%8]),1/3);
+    run.enemies.push(new HarvestOrganism(++run.nextEnemyId,'spore',at,{x:5,y:4},this.sporesSpawned++));run.discover('spore');
+  }
+  stepContent(run:EncounterSimulation,delta:number):void{
+    if(run.lessonActive()){run.lesson.step(run);return;}
+    run.enemies=run.enemies.filter(b=>!(b instanceof HarvestOrganism)||!['food','cyst','spore'].includes(b.kind)||b.age<b.lifetime());
+    const now=run.stageElapsed,needsFood=this.nourishment<(this.spec.mode==='boss'?3:this.spec.food);
+    if(needsFood&&run.enemies.filter(b=>b.kind==='food').length<2&&now-this.lastRefill>=18&&this.nextBloom-now>8&&now<this.spec.duration-18){
+      this.nextBloom=now;this.lastRefill=now;
+    }
+    while(now>=this.nextBloom&&this.nextBloom<this.spec.duration-18){
+      this.spawnBloom(run,(this.rotation+this.blooms*3+1)%8);
+      if(this.spec.mode==='rescue'&&this.rescued<this.spec.target&&run.enemies.filter(b=>b.kind==='spore').length<2)this.spawnSpore(run);
+      this.nextBloom+=run.stageIndex>0?BLOOM_CYCLE:26;
+    }
+    this.stepExistingBodies(run,delta);
+  }
 
   outcome(ids:readonly number[],run:EncounterSimulation,loopSize=run.selection.path.length):HarvestOutcome{
     const result:HarvestOutcome={food:0,poison:0,threats:0,rescued:0,purified:0,rawFood:0,filtered:0,
@@ -168,7 +227,7 @@ export class JourneyHarvest {
   }
   deadline():number{return this.spec.duration;}
   checkCompletion(run:EncounterSimulation):void{
-    if(run.state!=='active')return;
+    if(run.state!=='active'||run.lessonActive())return;
     if(run.integrity<=0){
       this.lossTitle='The mother was poisoned.';this.lossReason='A mixed meal contained more cysts than the colony could survive.';run.state='loss';
     }else if(this.spec.mode==='boss'?run.bossDefeated:
@@ -183,6 +242,7 @@ export class JourneyHarvest {
   stepExistingBodies(run:EncounterSimulation,delta:number):void{
     run.enemies=run.enemies.filter(b=>!(b instanceof HarvestOrganism)||!['food','cyst','spore'].includes(b.kind)||b.age<b.lifetime());
     this.ecology.stepExistingBodies(run,delta);
+    if(run.contentEnabled)this.events.step(run,delta);
     if(run.stageIndex>=4){
       const now=run.stageElapsed;
       const current=run.stageIndex>=8?{x:Math.cos(now*0.025)*0.65,y:Math.sin(now*0.025)*0.65}:

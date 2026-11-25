@@ -2,7 +2,7 @@
 
 Source baseline: Petriverse 0.3.0, be96d3e0641571cc37255fb8701ea83e20c28aee. All entries start unverified and unimplemented on mobile. Mark only with implementation reference plus verification evidence. Do not confuse inventory with completion.
 
-Checkpoint 2026-11-25: an integrated headless encounter now covers capture rewards, Mother damage, recovery, existing ecology and boss phases, with 67 passing CPU test groups. See [encounter engine](ENCOUNTER_ENGINE.md) for exact coverage and exclusions. The feature boxes below remain open because mobile/runtime and complete-journey parity are not yet demonstrated.
+Checkpoint 2026-11-25: the 15-encounter route, guided opening, bloom/arrival director, ordinary ecology decisions, authored events, evolution/growth and in-memory retry are connected to a landscape touch/Skia screen with 21 original textures. All 87 CPU test groups pass, including phone-coordinate input traces and campaign transitions. UI syntax transformation passes. See [encounter engine](ENCOUNTER_ENGINE.md) for exact coverage and exclusions. The feature boxes below remain open because native runtime and complete-game parity are not yet demonstrated; transition tests are not a full playthrough.
 
 ## Core
 - [ ] Board and biome layouts, drifting cells and readiness.

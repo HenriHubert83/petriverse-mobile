@@ -1,6 +1,5 @@
-// Headless encounter integration of prototype/scripts/run_controller.gd.
-// Callers supply the encounter and its bodies. This is not the campaign director:
-// route generation, spawning, lessons, evolution, persistence and native input are pending.
+// Encounter integration of prototype/scripts/run_controller.gd.
+// content=true populates the source encounter; omitted leaves an isolated fixture.
 // See CREDITS.md and LICENSE.
 import {Board} from '../geometry/board';
 import {Cell} from '../geometry/cell';
@@ -22,6 +21,8 @@ import {completeMastery} from '../campaign/journeyMastery';
 import type {MasteryAward} from '../campaign/journeyMastery';
 import {FluidField} from './fluidField';
 import {MotherDamage} from './motherDamage';
+import {SeededRandom} from './seededRandom';
+import {JourneyLesson,WIDE_LESSON} from '../campaign/journeyLesson';
 
 export type EncounterState='brief'|'active'|'paused'|'complete'|'loss';
 export type GrowthRole='guard'|'feeder';
@@ -30,6 +31,7 @@ export type CaptureResult=InvalidCapture|(HarvestResult&{strain:number});
 export interface EncounterOptions {
   seed?:number;waterSeed?:number;encounterIndex?:number;maxIntegrity?:number;integrity?:number;
   biomass?:number;mutations?:readonly string[];growthRoles?:Readonly<Record<number,GrowthRole>>;
+  content?:boolean;guidedLesson?:boolean;rng?:SeededRandom;
 }
 const len=(p:Point)=>Math.hypot(p.x,p.y);
 const limit=(p:Point,max:number):Point=>len(p)>max?scale(p,max/len(p)):p;
@@ -39,7 +41,8 @@ export class EncounterSimulation {
   readonly fluid=new FluidField();readonly motherDamage=new MotherDamage();
   readonly amoebas=new AmoebaSystem();readonly phages=new PhageSystem();readonly nudge=new CystNudge();
   readonly harvest:JourneyHarvest;readonly runSeed:number;readonly encounterIndex:number;readonly encounterKey:string;
-  readonly maxIntegrity:number;readonly mutations:readonly string[];readonly growthRoles:Readonly<Record<number,GrowthRole>>;
+  readonly contentEnabled:boolean;readonly rng:SeededRandom;readonly lesson=new JourneyLesson();
+  readonly maxIntegrity:number;readonly mutations:readonly string[];readonly growthRoles:Record<number,GrowthRole>;
   state:EncounterState='brief';enemies:Drifter[]=[];nextEnemyId=0;
   elapsed=0;stageElapsed=0;integrity:number;biomass:number;score=0;kills=0;totalFood=0;totalRescued=0;
   bestCapture=0;loopsDrawn=0;bossDefeated=false;guardianSpent=0;guardianBlockSerial=0;
@@ -54,26 +57,33 @@ export class EncounterSimulation {
     for(const value of [spec.stage,spec.food,spec.target,spec.duration])if(!Number.isFinite(value)||value<0)throw new RangeError('Invalid encounter specification');
     this.harvest=new JourneyHarvest(Object.freeze({...spec}));
     this.runSeed=options.seed??1;this.encounterIndex=options.encounterIndex??spec.stage;
+    this.rng=options.rng??new SeededRandom(this.runSeed);this.contentEnabled=options.content??false;
     this.encounterKey=options.encounterIndex===undefined?String(spec.stage):`route:${options.encounterIndex}`;
     this.board.configureDish(Math.floor(spec.stage/4));
     this.cells=this.board.anchors.map(()=>new Cell());
-    this.mutations=Object.freeze([...(options.mutations??[])]);this.growthRoles=Object.freeze({...options.growthRoles});
+    this.mutations=Object.freeze([...(options.mutations??[])]);this.growthRoles={...options.growthRoles};
     this.selection=new InputController(this.board,id=>this.isReady(id));this.selection.maxVertices=maximum(this.mutations);
     this.motherDamage.setCapacity(options.maxIntegrity??3);this.maxIntegrity=this.motherDamage.capacity;
     this.integrity=Math.max(0,Math.min(this.maxIntegrity,options.integrity??this.maxIntegrity));
     this.motherDamage.resetFromIntegrity(this.integrity);this.biomass=options.biomass??0;
     const appearanceSeed=options.encounterIndex===undefined?this.runSeed:this.runSeed^((options.encounterIndex+1)*0x119de1f3);
     this.fluid.reset(this.board.center,this.board.dishRadius,(options.waterSeed??appearanceSeed)^(spec.stage*48271));
+    if(this.contentEnabled){this.harvest.begin(this);if(spec.stage===0&&options.guidedLesson!==false)this.lesson.begin(this);}
   }
   get stageIndex():number{return this.harvest.spec.stage;}
   get maxVertices():number{return this.selection.maxVertices;}
-  lessonActive():boolean{return false;} // Guided lesson integration has not been migrated.
+  lessonActive():boolean{return this.lesson.active(this);}
   boss():Drifter|undefined{return this.enemies.find(b=>b.isBoss());}
   addBody<T extends Drifter>(body:T):T{
     if(this.enemies.some(b=>b.id===body.id)||this.phages.clusters.some(b=>b.id===body.id))throw new Error('Duplicate organism ID');
     this.nextEnemyId=Math.max(this.nextEnemyId,body.id);this.enemies.push(body);return body;
   }
-  begin():boolean{if(this.state!=='brief')return false;this.state='active';return true;}
+  growthSlot():number{return this.stageIndex===2&&this.growthRoles[1]===undefined?1:this.stageIndex===8&&this.growthRoles[5]===undefined?5:-1;}
+  chooseGrowthRole(role:GrowthRole):boolean{
+    const slot=this.growthSlot();if(this.state!=='brief'||slot<0||!['guard','feeder'].includes(role))return false;
+    this.growthRoles[slot]=role;return true;
+  }
+  begin():boolean{if(this.state!=='brief')return false;if(this.growthSlot()>=0)this.chooseGrowthRole('guard');this.state='active';return true;}
   isReady(id:number):boolean{return Number.isInteger(id)&&id>=0&&id<this.cells.length&&this.cells[id].isReady()&&!this.harvest.ecology.blocked(this,id);}
   targetSnapshot():Target[]{
     return this.enemies.map(b=>({id:b.id,position:{...b.nucleus},nuclei:b.nuclei().map(p=>({...p})),health:b.health,kind:b.kind,eligible:b.canTakePulse()}));
@@ -87,6 +97,7 @@ export class EncounterSimulation {
     const result=commitJourney(path,this);
     if(result.valid){
       this.lastCapture=result;this.clots.push(new Clot(++this.captureSerial,result,this.cells,this.board.center));
+      this.lesson.record(this,result);
       this.harvest.checkCompletion(this);
     }
     return result;
@@ -147,8 +158,9 @@ export class EncounterSimulation {
       return;
     }
     delta=Math.min(delta,Math.max(0,this.harvest.deadline()-this.stageElapsed));
-    this.elapsed+=delta;this.nudge.step(delta,this);this.stageElapsed+=delta;
+    this.elapsed+=delta;this.nudge.step(delta,this);if(!this.lessonActive())this.stageElapsed+=delta;
     const held=[...this.selection.path,...this.cells.flatMap((c,id)=>c.isReady()?[]:[id])];
+    if(this.lessonActive())held.push(...WIDE_LESSON);
     this.stepWater(delta);this.board.stepMotion(delta,held,this.fluid);this.stepRecovery(delta);this.motherDamage.step(delta);
     for(const body of this.enemies){
       const previous=body.nuclei();body.step(delta,this.harvest.ecology.huntDestination(this,body));this.advectBody(body,delta);
@@ -162,10 +174,11 @@ export class EncounterSimulation {
     for(const membrane of this.residuals)membrane.remaining-=delta;
     this.residuals=this.residuals.filter(m=>m.remaining>0);this.resolveContacts();
     if(this.state!=='active')return;
-    this.harvest.stepExistingBodies(this,delta);this.harvest.checkCompletion(this);
+    if(this.contentEnabled)this.harvest.stepContent(this,delta);else this.harvest.stepExistingBodies(this,delta);
+    this.harvest.checkCompletion(this);
   }
   private advectBody(body:Drifter,delta:number):void{
-    if(body.isBoss()||['bell_bud','warden','parasite','amoeba'].includes(body.kind)||body.gateIds.length)return;
+    if(this.lessonActive()||body.isBoss()||['bell_bud','warden','parasite','amoeba'].includes(body.kind)||body.gateIds.length)return;
     let movement:Point={x:0,y:0};
     if(['food','cyst','spore'].includes(body.kind))movement=scale(limit(scale(this.fluid.sample(body.nucleus),0.18),1.2),delta);
     else if(body.speed>0&&body.stunned<=0)movement=scale(limit(scale(this.fluid.sample(body.nucleus),0.04),Math.min(0.45,body.speed*0.08)),delta);

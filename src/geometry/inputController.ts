@@ -9,10 +9,12 @@ const dist=(a:Point,b:Point)=>Math.hypot(a.x-b.x,a.y-b.y);
 export class InputController {
   path:number[]=[];closed=false;active=false;rejectedId=-1;rejectionReason='';
   maxVertices=8;assistedClosure=false;
+  hitPadding=0;
   constructor(readonly board:InputBoard,readonly ready:(id:number)=>boolean){}
   cancel():void {this.path.length=0;this.closed=false;this.active=false;this.rejectedId=-1;this.rejectionReason='';}
   start(point:Point):void {
-    this.cancel();const id=this.board.hitTest(point);
+    this.cancel();let id=this.board.hitTest(point);
+    if(this.hitPadding>0){let nearest=this.board.hitRadius+this.hitPadding;id=-1;this.board.anchors.forEach((p,i)=>{const distance=dist(p,point);if(distance<nearest){nearest=distance;id=i;}});}
     if(id>=0&&this.ready(id)){this.path.push(id);this.active=true;}
     else if(id>=0){this.rejectedId=id;this.rejectionReason='This cell is busy. Start from a ready blue cell.';}
   }
@@ -41,7 +43,7 @@ export class InputController {
     if(!this.active||(eq(from.x,to.x)&&eq(from.y,to.y))||a===0)return;
     const hits:{id:number;t:number}[]=[];
     for(let id=0;id<this.board.anchors.length;id++){
-      const p=this.board.anchors[id],ox=from.x-p.x,oy=from.y-p.y,r=this.board.hitRadius;
+      const p=this.board.anchors[id],ox=from.x-p.x,oy=from.y-p.y,r=this.board.hitRadius+this.hitPadding;
       if(Math.hypot(ox,oy)<=r)continue;
       const b=2*(ox*dx+oy*dy),c=ox*ox+oy*oy-r*r,disc=b*b-4*a*c;
       if(disc<0)continue;const t=(-b-Math.sqrt(disc))/(2*a);

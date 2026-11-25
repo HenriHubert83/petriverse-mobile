@@ -1,0 +1,265 @@
+{
+  "dishes": [
+    {
+      "name": "Stillwater",
+      "subtitle": "A colony learns to feed",
+      "rule": "Quiet currents. Learn which organisms nourish and which poison.",
+      "color": "#a1ddd5"
+    },
+    {
+      "name": "Glassgarden",
+      "subtitle": "Life between the reeds",
+      "rule": "The tide reverses every 18 seconds. Linked glass shields can regrow.",
+      "color": "#bdd6b0"
+    },
+    {
+      "name": "Blue Deep",
+      "subtitle": "A light in the dark",
+      "rule": "Linked predators arrive in pairs. Fit both nuclei inside one membrane.",
+      "color": "#b4bde8"
+    }
+  ],
+  "stages": [
+    {
+      "name": "First nourishment",
+      "mode": "feed",
+      "food": 9,
+      "duration": 180,
+      "target": 0,
+      "threats": 0,
+      "lesson": "Green lobed desmids are food. Purple spiked cysts poison. Drag through any ready blue cells, return to the first, then release."
+    },
+    {
+      "name": "New life",
+      "mode": "rescue",
+      "food": 18,
+      "duration": 180,
+      "target": 2,
+      "threats": 2,
+      "lesson": "Enclose the small pearl-colored spores to bring them home. Gather food as well. Orange hunters must not reach the mother."
+    },
+    {
+      "name": "The nursery",
+      "mode": "defend",
+      "food": 18,
+      "duration": 180,
+      "target": 3,
+      "threats": 3,
+      "lesson": "Feed the mother and remove three threats. Food thieves and hunters both count. The small bell bud inhales, then opens its gold center for capture. Watch its breath."
+    },
+    {
+      "name": "The Bellwether",
+      "mode": "boss",
+      "food": 3,
+      "duration": 240,
+      "target": 3,
+      "threats": 0,
+      "lesson": "Like the bell bud, it draws food and poison inward, then opens for 16 seconds. Charge with three food and capture its gold center during the exhale. Repeat three times."
+    },
+    {
+      "name": "Clear a passage",
+      "mode": "purify",
+      "food": 20,
+      "duration": 180,
+      "target": 4,
+      "threats": 2,
+      "lesson": "A membrane containing ONLY cysts neutralizes them safely in this encounter. Separate the poison from food; mixed meals still hurt."
+    },
+    {
+      "name": "Turning tide",
+      "mode": "sectors",
+      "food": 22,
+      "duration": 180,
+      "target": 3,
+      "threats": 3,
+      "lesson": "Feed from three different sectors. Amoebas can swallow a blue cell: loop around their gold nucleus within 15 seconds to rescue it. An eaten cell regrows next encounter."
+    },
+    {
+      "name": "Glass cradles",
+      "mode": "rescue",
+      "food": 20,
+      "duration": 180,
+      "target": 3,
+      "threats": 3,
+      "lesson": "A glass cradle protects the first pearl. Capture both linked shields together, or the second within 18 seconds, then rescue the pearl. Rescue three spores in all."
+    },
+    {
+      "name": "The Glass Regent",
+      "mode": "boss",
+      "food": 3,
+      "duration": 240,
+      "target": 3,
+      "threats": 0,
+      "lesson": "Use what the glass cradle taught you: break both shields together, or the second within 18 seconds. Spend three food charge to hit the exposed nucleus."
+    },
+    {
+      "name": "Shared shelter",
+      "mode": "defend",
+      "food": 22,
+      "duration": 210,
+      "target": 4,
+      "threats": 4,
+      "lesson": "Remove four threats and gather food. Linked Twinspores share a membrane: both hearts must fit in your loop."
+    },
+    {
+      "name": "A clean current",
+      "mode": "purify",
+      "food": 22,
+      "duration": 210,
+      "target": 6,
+      "threats": 3,
+      "lesson": "Neutralize six cysts in poison-only loops. Keep a safe feeding route open while the deep current moves the colony."
+    },
+    {
+      "name": "Seeds of tomorrow",
+      "mode": "rescue",
+      "food": 24,
+      "duration": 210,
+      "target": 4,
+      "threats": 4,
+      "lesson": "Bring four pearl spores home. Your evolved colony must balance feeding, protection, and rescue."
+    },
+    {
+      "name": "The Conjoined",
+      "mode": "boss",
+      "food": 3,
+      "duration": 270,
+      "target": 3,
+      "threats": 0,
+      "lesson": "Spend three food charge to enclose BOTH hearts. They spread farther after each hit; wait for them to meet, or draw a wider loop. Young pairs hatch nearby. Capture them before they reach Mother."
+    }
+  ],
+  "colonies": [
+    {
+      "id": "wanderer",
+      "name": "The Wanderer",
+      "trait": "",
+      "detail": "An adaptable beginning. Eight-cell membranes, no tradeoffs.",
+      "unlock": "Available from the beginning"
+    },
+    {
+      "id": "weaver",
+      "name": "The Weaver",
+      "trait": "fission",
+      "detail": "Starts with Rapid Fission. Small loops recover in two seconds.",
+      "unlock": "Guide a colony out of Stillwater"
+    },
+    {
+      "id": "symbiont",
+      "name": "The Symbiont",
+      "trait": "symbiosis",
+      "detail": "Starts with Symbiosis. Captured predators also nourish the colony.",
+      "unlock": "Guide a colony out of Glassgarden"
+    }
+  ],
+  "mutations": [
+    {
+      "id": "fission",
+      "name": "Rapid Fission",
+      "mark": "I",
+      "role": "PRECISION",
+      "summary": "Small loops return sooner.",
+      "detail": "3-4 cell loops recover in 2 seconds.\nKeep a nimble route near the mother.",
+      "tradeoff": "Larger loops keep their usual recovery."
+    },
+    {
+      "id": "elastic",
+      "name": "Elastic Membranes",
+      "mark": "II",
+      "role": "REACH",
+      "summary": "Reach across the whole colony.",
+      "detail": "Connect up to 10 cells in one loop.\nCatch pairs or distant groups together.",
+      "tradeoff": "Every loop takes 0.6s longer to return."
+    },
+    {
+      "id": "enzyme",
+      "name": "Enzyme Sacs",
+      "mark": "III",
+      "role": "POWER",
+      "summary": "Wide loops dissolve armor.",
+      "detail": "Loops of 6+ cells deal two damage.\nDigest a Shellback in a single capture.",
+      "tradeoff": "Those loops take 1.2s longer to return."
+    },
+    {
+      "id": "frenzy",
+      "name": "Feeding Frenzy",
+      "mark": "IV",
+      "role": "FLOW",
+      "summary": "A feast keeps your start alive.",
+      "detail": "Digest 3+ bodies in one loop and its\nstarting cell stays immediately ready.",
+      "tradeoff": "Twinspores count as two bodies."
+    },
+    {
+      "id": "lure",
+      "name": "Osmotic Lure",
+      "mark": "V",
+      "role": "GATHER",
+      "summary": "Bring the next meal closer.",
+      "detail": "Each loop gently draws nearby enemies\ntoward it. Prepare your next capture.",
+      "tradeoff": "The Conjoined resists this current."
+    },
+    {
+      "id": "residual",
+      "name": "Residual Membrane",
+      "mark": "VI",
+      "role": "CONTROL",
+      "summary": "Leave a little time behind.",
+      "detail": "A loop leaves a brief membrane.\nCrossing enemies slow by 40% for 1s.",
+      "tradeoff": "The Conjoined passes through freely."
+    },
+    {
+      "id": "filter",
+      "name": "Filter Veil",
+      "mark": "VII",
+      "role": "TOLERANCE",
+      "summary": "One cyst becomes harmless.",
+      "detail": "Filter the first cyst in each meal.\nChoose richer, contaminated pockets.",
+      "tradeoff": "Every membrane returns 1.2s later."
+    },
+    {
+      "id": "feast",
+      "name": "Feast Chambers",
+      "mark": "VIII",
+      "role": "ABUNDANCE",
+      "summary": "Large meals feed twice more.",
+      "detail": "Four or more desmids give +2 food.\nPlan a generous enclosure.",
+      "tradeoff": "Wide loops return 1 second later."
+    },
+    {
+      "id": "grazer",
+      "name": "Delicate Grazer",
+      "mark": "IX",
+      "role": "PRECISION",
+      "summary": "Small clean meals go further.",
+      "detail": "One or two desmids give +1 food\nif the membrane causes no poison.",
+      "tradeoff": "Large meals gain no bonus."
+    },
+    {
+      "id": "symbiosis",
+      "name": "Symbiosis",
+      "mark": "X",
+      "role": "DEFENSE",
+      "summary": "Protection becomes nourishment.",
+      "detail": "Each captured threat gives +2 food.\nGuard the mother while she feeds.",
+      "tradeoff": "Cracking armor alone gives no food."
+    },
+    {
+      "id": "catalyst",
+      "name": "Bitter Catalyst",
+      "mark": "XI",
+      "role": "RISK",
+      "summary": "Turn swallowed cysts into food.",
+      "detail": "Each cyst in a meal gives +2 food.\nCombines with the Filter Veil.",
+      "tradeoff": "Unfiltered cysts still cost an organelle."
+    },
+    {
+      "id": "nursery",
+      "name": "Living Nursery",
+      "mark": "XII",
+      "role": "RENEWAL",
+      "summary": "Clean feeding grows new life.",
+      "detail": "Every 12 clean desmids regrow\none of the mother's organelles.",
+      "tradeoff": "Progress resets each encounter."
+    }
+  ]
+}

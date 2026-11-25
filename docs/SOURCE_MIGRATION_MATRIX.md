@@ -22,14 +22,14 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/drifter.gd` | `src/ecology/drifter.ts` | Implemented / local behavior tests passed; full ecosystem integration pending |
 | `scripts/ecology_enemy.gd` | `src/ecology/ecologyEnemy.ts` | Implemented / local movement tests passed; destination assignment and food web pending |
 | `scripts/encounter.gd` | `src/campaign/encounter.ts` | Scope review pending |
-| `scripts/encounter_rhythm.gd` | `src/campaign/encounterRhythm.ts` | Pending |
+| `scripts/encounter_rhythm.gd` | `src/campaign/encounterRhythm.ts` | Implemented / source pacing used by arrival director; CPU warning timing covered, native presentation pending |
 | `scripts/evolution_anatomy.gd` | `src/evolution/evolutionAnatomy.ts` | Pending |
 | `scripts/evolution_comparison.gd` | `src/components/evolutionComparison.ts` | Pending |
 | `scripts/evolution_reveal.gd` | `src/components/evolutionReveal.ts` | Pending |
 | `scripts/expedition_creatures.gd` | `src/campaign/expeditionCreatures.ts` | Pending |
 | `scripts/fluid_field.gd` | `src/engine/fluidField.ts` | CPU simulation and RGBA encoding implemented / local and encounter pause tests passed; native GPU upload pending |
 | `scripts/game_feel.gd` | `src/rendering/gameFeel.ts` | Pending |
-| `scripts/habitat_events.gd` | `src/campaign/habitatEvents.ts` | Pending |
+| `scripts/habitat_events.gd` | `src/campaign/habitatEvents.ts` | Partial / authored event timing and currents tested; creature forms and final traveller visual pending |
 | `scripts/harvest.gd` | `src/campaign/harvest.ts` | Scope review pending |
 | `scripts/harvest_flow.gd` | `src/campaign/harvestFlow.ts` | Pending |
 | `scripts/harvest_organism.gd` | `src/ecology/harvestOrganism.ts` | Implemented / behavior and capture reward integration tested; wave/content scheduling pending |
@@ -39,29 +39,29 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/input_controller.gd` | `src/geometry/inputController.ts` | Implemented / local regression tests passed; upstream integration pending |
 | `scripts/journey_boss.gd` | `src/campaign/journeyBoss.ts` | Implemented / all three phase models, charged capture, shields and offspring tested; full campaign/native verification pending |
 | `scripts/journey_discoveries.gd` | `src/campaign/journeyDiscoveries.ts` | Pending |
-| `scripts/journey_ecology.gd` | `src/ecology/foodWeb.ts`, `src/ecology/encounterEcology.ts` | Partial / food web, gates, inhalation and existing-system integration tested; waves, competitor decisions and cradle hatching pending |
+| `scripts/journey_ecology.gd` | `src/ecology/foodWeb.ts`, `src/ecology/encounterEcology.ts` | Partial / waves, food web, competitor decisions, gates and cradle hatching tested; sheltered habitats, forms and legacy finale pending |
 | `scripts/journey_guidance.gd` | `src/components/journeyGuidance.ts` | Pending |
 | `scripts/journey_habitats.gd` | `src/campaign/journeyHabitats.ts` | Pending |
-| `scripts/journey_harvest.gd` | `src/campaign/journeyHarvest.ts` | Partial / outcome, commit, score, ordinary goals and existing-body update tested; spawning, habitats, lessons and legacy final surge pending |
-| `scripts/journey_hud.gd` | `src/components/journeyHud.ts` | Pending |
-| `scripts/journey_lesson.gd` | `src/campaign/journeyLesson.ts` | Pending |
+| `scripts/journey_harvest.gd` | `src/campaign/journeyHarvest.ts` | Partial / blooms, refill, capture rewards, goals and ecology integration tested; discoveries, habitats and legacy finale pending |
+| `scripts/journey_hud.gd` | `src/mobile/GameScreen.tsx` | Partial / mobile objectives, colony status and encounter states implemented; native layout and full HUD parity pending |
+| `scripts/journey_lesson.gd` | `src/campaign/journeyLesson.ts` | Implemented / two captures and recovery tested through phone-coordinate controller; native play test pending |
 | `scripts/journey_mastery.gd` | `src/campaign/journeyMastery.ts` | Implemented / guardian, gatherer, clear-water awards, cap and deduplication tested; profile/home-pond integration pending |
-| `scripts/journey_plan.gd` | `src/campaign/journeyPlan.ts` | Pending |
+| `scripts/journey_plan.gd` | `src/campaign/journeyPlan.ts`, `data/journey.json` | Partial / original stages, dishes and colonies imported; full species/form catalogue pending |
 | `scripts/journey_profile.gd` | `src/storage/journeyProfile.ts` | Pending |
-| `scripts/journey_route.gd` | `src/campaign/journeyRoute.ts` | Pending |
+| `scripts/journey_route.gd` | `src/campaign/journeyRoute.ts` | Partial / seeded 15-encounter route and special visits tested; legacy route/save validation pending |
 | `scripts/journey_save.gd` | `src/storage/journeySave.ts` | Pending |
 | `scripts/lens_optics.gd` | `src/rendering/lensOptics.ts` | Pending |
 | `scripts/loop_geometry.gd` | `src/geometry/loopGeometry.ts` | Implemented / 4 local tests passed; upstream parity pending |
 | `scripts/loop_resolver.gd` | `src/geometry/loopResolver.ts` | Partial / shared capture and real journey reward dispatch tested; legacy resolver branch pending |
 | `scripts/loop_strain.gd` | `src/geometry/loopStrain.ts` | Implemented / local tests passed |
 | `scripts/main.gd` | `src/engine/main.ts` | Pending |
-| `scripts/microscope.gd` | `src/rendering/microscope.ts` | Pending |
+| `scripts/microscope.gd` | `src/rendering/EncounterView.tsx`, `src/rendering/organismTextures.ts` | Partial / original base textures, dimensions and nucleus offsets wired to model; full shader/visual parity and device verification pending |
 | `scripts/mission_appearance.gd` | `src/rendering/missionAppearance.ts` | Pending |
 | `scripts/mother_alert.gd` | `src/engine/motherAlert.ts` | Pending |
 | `scripts/mother_appearance.gd` | `src/rendering/motherAppearance.ts` | Pending |
 | `scripts/mother_damage.gd` | `src/engine/motherDamage.ts` | Implemented / organelles, injuries, healing, batched contacts, pause and loss tested; native injury visuals pending |
 | `scripts/mutation_card.gd` | `src/components/mutationCard.ts` | Pending |
-| `scripts/mutations.gd` | `src/evolution/captureRules.ts`, `src/campaign/journeyHarvest.ts` | Partial / recovery, damage, limits and capture effects tested; catalogue, offers and evolution UI pending |
+| `scripts/mutations.gd` | `src/evolution/captureRules.ts`, `src/evolution/mutations.ts`, `src/campaign/journeyHarvest.ts` | Partial / journey catalogue, offers, costs and all capture effects implemented; native reveal and full fixture coverage pending |
 | `scripts/organism_arrival.gd` | `src/ecology/organismArrival.ts` | Implemented / arrival regression now executed and passed |
 | `scripts/phage_cluster.gd` | `src/ecology/phageCluster.ts` | Implemented / local attachment and lifetime integration pending full journey |
 | `scripts/phage_system.gd` | `src/ecology/phageSystem.ts` | Implemented / local and headless encounter infection, rupture, salvage capture and snapshots tested; full journey/save validation pending |
@@ -72,7 +72,7 @@ Pinned source: be96d3e0641571cc37255fb8701ea83e20c28aee. Every source file is ac
 | `scripts/readable_ui.gd` | `src/components/readableUi.ts` | Pending |
 | `scripts/records.gd` | `src/storage/records.ts` | Pending |
 | `scripts/reticle_cursor.gd` | `src/rendering/reticleCursor.ts` | Pending |
-| `scripts/run_controller.gd` | `src/engine/encounterSimulation.ts` | Partial / supplied-content headless encounter tested; route, content generation, evolution, lessons, retry, saves and legacy branches pending |
+| `scripts/run_controller.gd` | `src/engine/encounterSimulation.ts`, `src/campaign/journeySession.ts` | Partial / content, lessons, progression, evolution, growth and retry tested; durable saves, colony unlocks, habitats and legacy branches pending |
 | `scripts/run_plan.gd` | `src/campaign/runPlan.ts` | Scope review pending |
 | `scripts/soundscape.gd` | `src/audio/soundscape.ts` | Pending |
 | `scripts/tissue_motion.gd` | `src/rendering/tissueMotion.ts` | Pending |
