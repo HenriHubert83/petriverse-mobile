@@ -41,7 +41,7 @@ function capture(r:EncounterSimulation,path:readonly number[]=NARROW):HarvestRes
 function settle(r:EncounterSimulation):void{for(let i=0;i<360;i++)r.step(1/60);}
 
 test('Mother damage claims nearest intact cores, copies geometry and retains wounds after aftermath',()=>{
-  const damage=new MotherDamage(),origin=p(52,-34),nuclei=[{...origin}];
+  const damage=new MotherDamage(),origin={...p(52,-34)},nuclei=[{...origin}];
   damage.record(1,origin,p(0,0),'shellback',nuclei,2,'amber_nautilus');
   assert.equal(damage.bites[0].core,1);origin.x=999;nuclei[0].y=999;
   assert.deepEqual(damage.bites[0].origin,p(52,-34));assert.deepEqual(damage.bites[0].nuclei,[p(52,-34)]);

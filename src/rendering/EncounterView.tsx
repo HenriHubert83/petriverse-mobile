@@ -54,7 +54,7 @@ export function EncounterView({run,touch,tracers,onInteraction}:{run:EncounterSi
   },[touch,run,onInteraction]);
   useEffect(()=>{touch.resize(size.width,size.height);return()=>touch.cancel();},[touch,size.width,size.height]);
   const view=touch.view,center=run.board.center,radius=run.board.dishRadius;
-  const clip=useMemo(()=>{const p=Skia.Path.Make();p.addCircle(center.x,center.y,radius);return p;},[center.x,center.y,radius]);
+  const clip=useMemo(()=>Skia.PathBuilder.Make().addCircle(center.x,center.y,radius).detach(),[center.x,center.y,radius]);
   const selected=new Set(run.selection.path),preview=new Set(run.preview());
   const recovery=new Map<number,Point>();for(const clot of run.clots)clot.nodes.forEach((n,i)=>recovery.set(n,clot.cellPosition(i)));
   const selectionPoints=run.selection.path.map(i=>run.board.anchors[i]);
