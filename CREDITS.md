@@ -6,6 +6,8 @@
 
 The 71 PNG files in `assets/organisms` and `assets/biomes` are unmodified original artwork from the pinned commit. Their byte lengths and Git blob hashes match `docs/ASSET_MANIFEST.json`. The original authored journey and mutation text is carried into `data/journey.json`; original creature names and descriptions are retained in `src/content/creatureCatalogue.ts`.
 
+The illustrated title logo in `assets/branding/petriverse-title-v2.png` is also an unmodified original from that commit, verified against the same manifest. The mobile title presents it over a separate, decorative living microscope using the shared renderer, adapted to the landscape menu layout.
+
 Original audio imports are 19 unmodified OGG soundscape files in `assets/audio` (three music tracks, fourteen effects, and two ambient layers) and 44 unmodified OGG introductions in `assets/audio/introductions`. All source byte lengths and Git blob hashes were verified against `docs/ASSET_MANIFEST.json`. The original README credits ElevenLabs-generated narration, voice Willa Ashford, and sound effects. The mobile port retains those recordings and their original dialogue.
 
 Native playback uses AAC M4A compatibility copies in `assets/audio/mobile` and `assets/audio/introductions-mobile`, encoded at 128 kbps and 44.1 kHz. The connection sound also has an octave copy so the original higher notes can be reproduced within the native playback rate limit. These format and pitch derivatives are recorded with source Git hashes, output SHA-256 hashes, sizes and durations in `docs/AUDIO_DERIVATIVES.json` and `src/cinema/narrationManifest.json`. The soundtrack sequencing, pentatonic connection notes, event feedback, narration ducking and volume defaults are adapted from the original `soundscape.gd`.

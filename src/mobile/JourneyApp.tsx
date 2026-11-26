@@ -19,6 +19,7 @@ import {AppearanceProvider,AppText as Text,AppPressable as Pressable} from './Ac
 import {PreferencesController} from '../settings/preferencesController';
 import {useSoundscape} from '../audio/useSoundscape';
 import {markFilmIntroduced} from '../cinema/discoveryOffers';
+import {TitleScene} from './TitleScene';
 
 // Keep repository queues across screen and React remounts. Native storage lives
 // outside the React tree, so a former view must not race a newly mounted view.
@@ -127,13 +128,8 @@ export function JourneyApp(){
   return wrap(<View style={styles.root}><ScrollView contentContainerStyle={styles.page}>
     <View style={styles.introduction}>
       <Text style={styles.eyebrow}>A LITTLE UNIVERSE, ALIVE</Text>
-      <Text style={styles.brand}>PETRIVERSE</Text>
-      <Text style={styles.tagline}>Gather. Protect. Evolve.</Text>
-      <View style={styles.pond} accessible={false} pointerEvents="none">
-        <View style={styles.mother}><View style={styles.core}/></View>
-        <View style={[styles.cell,{left:24,top:31}]}/><View style={[styles.cell,{right:20,top:50}]}/>
-        <View style={[styles.cell,{left:42,bottom:23}]}/><View style={[styles.cell,{right:34,bottom:28}]}/>
-      </View>
+      <TitleScene preferences={prefs}/>
+      <Text style={styles.tagline}>A small life. A whole world.</Text>
       <Text style={styles.credits}>Petriverse by Marco van Hylckama Vlieg{`\n`}Mobile adaptation by Henri Hubert / AI Engineer Hub</Text>
     </View>
     <View style={styles.menu}>
@@ -186,10 +182,8 @@ const styles=StyleSheet.create({
   menuLinks:{gap:8},menuLinkRow:{flex:1,flexDirection:'row',gap:8},menuLinkButton:{flex:1},colonyPage:{padding:24,gap:16,width:'100%',maxWidth:700,alignSelf:'center'},colony:{gap:8,padding:18,backgroundColor:'#0c242b',borderWidth:1,borderColor:'#2c5055',borderRadius:14},
   page:{flexGrow:1,padding:24,flexDirection:'row',flexWrap:'wrap',alignItems:'center',justifyContent:'center',gap:28},
   introduction:{flexGrow:1,flexBasis:260,maxWidth:440,alignItems:'center',gap:10},menu:{flexGrow:1,flexBasis:300,maxWidth:520,gap:10,padding:20,backgroundColor:'#0c242b',borderColor:'#2c5055',borderWidth:1,borderRadius:18},
-  eyebrow:{fontSize:10,color:'#9ac8c2',letterSpacing:2},brand:{color:'#e1eee4',fontSize:29,fontWeight:'600',letterSpacing:5},tagline:{color:'#a5c1be',fontSize:15},title:{color:'#e3eee4',fontSize:22,fontWeight:'500'},
+  eyebrow:{fontSize:10,color:'#9ac8c2',letterSpacing:2},tagline:{color:'#a5c1be',fontSize:15,textAlign:'center'},title:{color:'#e3eee4',fontSize:22,fontWeight:'500'},
   body:{color:'#c0d3ce',fontSize:13,lineHeight:20},detail:{color:'#91adae',fontSize:11,lineHeight:16},credits:{color:'#87a5a5',fontSize:10,lineHeight:15,textAlign:'center'},
   button:{minHeight:44,paddingHorizontal:16,paddingVertical:12,alignItems:'center',justifyContent:'center',backgroundColor:'#325f5b',borderRadius:10,borderWidth:1,borderColor:'#59857b'},quiet:{backgroundColor:'#112b30',borderColor:'#34585e'},buttonText:{color:'#e0eee0',fontSize:13,fontWeight:'600',textAlign:'center'},dim:{opacity:0.45},
   summary:{gap:6,marginBottom:5},notice:{color:'#d5dca9',fontSize:12,lineHeight:18},error:{color:'#f0c1ac',fontSize:12,lineHeight:18},
-  pond:{width:174,height:154,borderRadius:80,borderWidth:1,borderColor:'#46676a',backgroundColor:'#102e34',alignItems:'center',justifyContent:'center',marginVertical:4},
-  mother:{width:63,height:63,borderRadius:32,borderWidth:2,borderColor:'#91adae',backgroundColor:'#25494f',alignItems:'center',justifyContent:'center'},core:{width:23,height:23,borderRadius:12,backgroundColor:'#bcb370',borderWidth:2,borderColor:'#dfca8b'},cell:{position:'absolute',width:17,height:17,borderRadius:9,borderWidth:1,borderColor:'#b2d3d8',backgroundColor:'#365d66'},
 });

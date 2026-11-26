@@ -42,7 +42,7 @@ function TextureLoader({name,loaded}:{name:TextureKey;loaded:(name:TextureKey,im
   const image=useImage(organismTextures[name]);
   useEffect(()=>{if(image)loaded(name,image);return()=>loaded(name,null);},[image,loaded,name]);return null;
 }
-export function EncounterView({run,touch,tracers,onInteraction,reducedMotion=false,highContrast=false,visualQuality=2,children,feel}:{run:EncounterSimulation;touch:TouchController;tracers:WaterTracers;onInteraction:()=>void;reducedMotion?:boolean;highContrast?:boolean;visualQuality?:0|1|2;children?:React.ReactNode;feel?:GameFeel}){
+export function EncounterView({run,touch,tracers,onInteraction,reducedMotion=false,highContrast=false,visualQuality=2,interactive=true,children,feel}:{run:EncounterSimulation;touch:TouchController;tracers:WaterTracers;onInteraction:()=>void;reducedMotion?:boolean;highContrast?:boolean;visualQuality?:0|1|2;interactive?:boolean;children?:React.ReactNode;feel?:GameFeel}){
   const [size,setSize]=useState({width:0,height:0}),[,refreshCamera]=useState(0),[images,setImages]=useState<Images>({});
   const loaded=useCallback((name:TextureKey,image:SkImage|null)=>setImages(previous=>{
     if((previous[name]??null)===image)return previous;const next={...previous};if(image)next[name]=image;else delete next[name];return next;
@@ -125,15 +125,15 @@ export function EncounterView({run,touch,tracers,onInteraction,reducedMotion=fal
   }
   const selectionPoints=run.selection.path.map(i=>run.board.anchors[i]);
   const event=run.harvest.events.sample(run),nudge=run.nudge.target(run);
-  const lessonNodes=run.lessonActive()&&[0,2].includes(run.lesson.stepIndex)?run.lesson.route():[];
+  const lessonNodes=interactive&&run.lessonActive()&&[0,2].includes(run.lesson.stepIndex)?run.lesson.route():[];
   return <View style={styles.view}>
-    <View style={styles.touchSurface} {...pan.panHandlers} onLayout={e=>{
+    <View style={[styles.touchSurface,!interactive&&styles.displaySurface]} {...(interactive?pan.panHandlers:{})} pointerEvents={interactive?'auto':'none'} onLayout={e=>{
       const {width,height}=e.nativeEvent.layout;touch.resize(width,height);setSize({width,height});
-    }} accessibilityLabel="Petri dish. Use one finger to capture loops. Pinch with two fingers to zoom, or drag with two fingers to move the view.">
+    }} accessibilityLabel={interactive?'Petri dish. Use one finger to capture loops. Pinch with two fingers to zoom, or drag with two fingers to move the view.':undefined}>
     {wanted.map(name=><TextureLoader key={name} name={name} loaded={loaded}/>)}
     {view.scale>0&&<Canvas pointerEvents="none" style={StyleSheet.absoluteFill}>
       <Group layer={visualQuality===2&&!highContrast&&effects.lens?<Paint><RuntimeShader source={effects.lens} uniforms={{lens_center:[view.x+center.x*view.scale,view.y+center.y*view.scale],lens_radius:radius*view.scale,aberration:1,bloom:.7,softness:1,defocus:run.state==='paused'||run.state==='brief'?1:0,grain:1,saturation:run.state==='loss'?.65:1,exposure:1}}/></Paint>:undefined}>
-      <Group transform={[{translateX:view.x},{translateY:view.y}]}><Group transform={[{scale:view.scale}]}>
+      <Group transform={[{translateX:view.x},{translateY:view.y}]}><Group transform={[{scale:view.scale}]} clip={interactive?undefined:clip}>
         {fieldImage&&fluidChild&&effects.field?<Rect x={center.x-radius*1.14} y={center.y-radius*1.14} width={radius*2.28} height={radius*2.28}><Shader source={effects.field} uniforms={fieldUniforms}>{fieldChildren}</Shader></Rect>:<Circle cx={center.x} cy={center.y} r={radius}><RadialGradient c={vec(center.x,center.y-80)} r={radius*1.25} colors={['#24535b','#12383f','#081c23']}/></Circle>}
         <Circle cx={center.x} cy={center.y} r={radius} color="#527d7d" style="stroke" strokeWidth={highContrast?2:0.4}/>
         <Group clip={clip}>
@@ -204,7 +204,7 @@ export function EncounterView({run,touch,tracers,onInteraction,reducedMotion=fal
       {lessonNodes.map((id,i)=>{const at=toScreen(run.board.anchors[id],view);return <Text key={id} style={[styles.number,{left:at.x-10,top:at.y-10}]}>{i+1}</Text>;})}
     </View>
     </View>
-    <View style={styles.cameraControls}>
+    {interactive&&<View style={styles.cameraControls}>
       <Pressable accessibilityRole="button" accessibilityLabel="Zoom in on the petri dish" disabled={touch.zoom>=MAX_BOARD_ZOOM-0.001}
         accessibilityState={{disabled:touch.zoom>=MAX_BOARD_ZOOM-0.001}} onPress={()=>{touch.zoomBy(1.3);onInteraction();}}
         style={({pressed})=>[styles.cameraButton,(pressed||touch.zoom>=MAX_BOARD_ZOOM-0.001)&&styles.dim]}><Text style={styles.zoomText}>+</Text></Pressable>
@@ -213,9 +213,9 @@ export function EncounterView({run,touch,tracers,onInteraction,reducedMotion=fal
         style={({pressed})=>[styles.cameraButton,(pressed||touch.zoom<=1.001)&&styles.dim]}><Text style={styles.zoomText}>−</Text></Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel="Fit the whole petri dish" onPress={()=>{touch.resetView();onInteraction();}}
         style={({pressed})=>[styles.cameraButton,pressed&&styles.dim]}><Text style={styles.fitText}>Fit</Text></Pressable>
-    </View>
+    </View>}
   </View>;
 }
 const styles=StyleSheet.create({view:{flex:1,minWidth:0,overflow:'hidden'},
-  touchSurface:{position:'absolute',left:0,top:0,bottom:0,right:52,overflow:'hidden'},cameraControls:{position:'absolute',right:4,top:4,gap:4},cameraButton:{width:44,height:44,borderRadius:10,backgroundColor:'#112b30e8',borderColor:'#34585e',borderWidth:1,alignItems:'center',justifyContent:'center'},
+  touchSurface:{position:'absolute',left:0,top:0,bottom:0,right:52,overflow:'hidden'},displaySurface:{right:0},cameraControls:{position:'absolute',right:4,top:4,gap:4},cameraButton:{width:44,height:44,borderRadius:10,backgroundColor:'#112b30e8',borderColor:'#34585e',borderWidth:1,alignItems:'center',justifyContent:'center'},
   zoomText:{fontSize:24,color:'#e0eee0',lineHeight:28},fitText:{fontSize:12,fontWeight:'600',color:'#e0eee0'},dim:{opacity:0.45},number:{position:'absolute',width:20,height:20,borderRadius:10,backgroundColor:'#e2edda',color:'#153438',fontWeight:'700',fontSize:12,lineHeight:20,textAlign:'center'}});

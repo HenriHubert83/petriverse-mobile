@@ -14,8 +14,8 @@ test('soundscape runtime copies and original audio retain verifiable provenance'
     const runtime=bytes(file.destination);assert.equal(runtime.length,file.bytes);assert.equal(createHash('sha256').update(runtime).digest('hex'),file.sha256);assert.ok(file.durationSeconds>0);
   }
 });
-test('font and license notices are the exact pinned upstream originals',()=>{
-  for(const path of ['assets/fonts/Inter-Variable.ttf','assets/fonts/OFL.txt']){
+test('title logo, font and license notices are the exact pinned upstream originals',()=>{
+  for(const path of ['assets/branding/petriverse-title-v2.png','assets/fonts/Inter-Variable.ttf','assets/fonts/OFL.txt']){
     const expected=manifest.files.find(f=>f.destination===path);assert.ok(expected);
     const original=bytes(path);assert.equal(original.length,expected.bytes);assert.equal(gitBlob(original),expected.gitBlob);
   }
