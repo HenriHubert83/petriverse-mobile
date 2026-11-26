@@ -44,7 +44,10 @@ test('source music envelope applies fade, narration duck, muted output and curre
 });
 
 class Player implements SoundPlayer {
-  volume=0;loop=false;playing=false;duration=60;currentTime=0;playbackRate=1;shouldCorrectPitch=true;
+  volume=0;loop=false;playing=false;duration=60;currentTime=0;shouldCorrectPitch=true;
+  private rate=1;rates:number[]=[];
+  get playbackRate(){return this.rate;}
+  setPlaybackRate(rate:number){this.rate=rate;this.rates.push(rate);}
   removed=0;starts=0;replacements:number[]=[];
   constructor(public source:number|null){}
   play(){this.playing=true;this.starts++;}pause(){this.playing=false;}remove(){this.removed++;}
@@ -52,6 +55,16 @@ class Player implements SoundPlayer {
 }
 const assets:SoundAssets={music:{stillwater:1,glassgarden:2,deepwater:3},effects:Object.fromEntries(EFFECTS.map((name,index)=>[name,10+index])) as SoundAssets['effects'],pond:50,current:51,connectOctave:52};
 function playback(){const players:Player[]=[];const audio=new SoundscapePlayback(source=>{const p=new Player(source);players.push(p);return p;},assets);return {audio,players};}
+test('effects use the native rate method with a getter-only playbackRate property',()=>{
+  const descriptor=Object.getOwnPropertyDescriptor(Player.prototype,'playbackRate');assert.equal(descriptor?.set,undefined);
+  const {audio,players}=playback(),r=run();audio.update(r,DEFAULT_PREFERENCES,.1);
+  audio.uiPress();audio.externalCue({name:'swell',gain:.3,pitch:.86});audio.externalCue({name:'mote',gain:.3,pitch:3.4});
+  const voices=players.slice(4).filter(player=>player.playing);
+  assert.equal(voices.length,3);
+  assert.deepEqual(voices.map(player=>player.rates),[[1],[.86],[1.7]]);
+  assert.ok(voices.every(player=>player.shouldCorrectPitch===false));
+  assert.equal(voices[2].source,assets.connectOctave);audio.dispose();
+});
 test('playback bounds voices, releases all native players and never runs in background',()=>{
   const {audio,players}=playback(),r=run();assert.equal(players.length,14);audio.update(r,DEFAULT_PREFERENCES,.1);
   r.integrity--;audio.update(r,DEFAULT_PREFERENCES,.1);assert.ok(players.slice(4).some(p=>p.playing));

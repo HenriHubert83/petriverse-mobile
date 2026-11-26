@@ -4,9 +4,10 @@ import type {Preferences} from '../settings/preferences';
 
 /** Small adapter keeps playback lifecycle testable without loading a native module. */
 export interface SoundPlayer {
-  volume:number;loop:boolean;playing:boolean;duration:number;currentTime:number;
-  playbackRate:number;shouldCorrectPitch:boolean;
-  play():void;pause():void;replace(source:number):void;remove():void;
+  volume:number;loop:boolean;
+  readonly playing:boolean;readonly duration:number;readonly currentTime:number;
+  readonly playbackRate:number;shouldCorrectPitch:boolean;
+  play():void;pause():void;replace(source:number):void;remove():void;setPlaybackRate(rate:number):void;
 }
 export interface SoundAssets {music:Record<MusicTrack,number>;effects:Record<EffectName,number>;pond:number;current:number;connectOctave:number}
 interface Voice {player:SoundPlayer;gain:number;active:boolean;age:number;ui:boolean}
@@ -62,7 +63,8 @@ export class SoundscapePlayback {
     voice.player.shouldCorrectPitch=false;
     // The original connection melody reaches 3.4x. An octave copy preserves
     // those notes within Expo's native 2x playback rate limit.
-    voice.player.playbackRate=highNote?cue.pitch/2:Math.min(2,cue.pitch);voice.active=true;voice.age=0;voice.player.play();this.envelope.cue(cue.name);
+    // Native playbackRate is getter-only; changing it requires this method.
+    voice.player.setPlaybackRate(highNote?cue.pitch/2:Math.min(2,cue.pitch));voice.active=true;voice.age=0;voice.player.play();this.envelope.cue(cue.name);
   }
   uiPress(){this.effect({name:'ui_press',gain:.55,pitch:1},true);}
   externalCue(cue:ExternalSoundCue){
