@@ -19,10 +19,10 @@ export function CollectionHeader({title,detail,onBack,action}:{title:string;deta
   </View>;
 }
 export function CollectionSaveNotice({saving,error,readOnly,onRetrySave}:{saving?:boolean;error?:string;readOnly?:boolean;onRetrySave?:()=>void}){
-  if(!saving&&!error&&!readOnly)return null;
+  if(!error&&!readOnly)return null;
   return <View style={collectionStyles.notice}>
     <Text accessibilityLiveRegion="polite" style={error?collectionStyles.error:collectionStyles.caption}>
-      {error||(readOnly?'Your records are available to view. Changes are temporarily unavailable.':'Saving…')}
+      {error||'Your records are available to view. Changes are temporarily unavailable.'}
     </Text>
     {error&&onRetrySave&&<CollectionButton label="Retry saving" onPress={onRetrySave} disabled={saving}/>}
   </View>;

@@ -22,21 +22,21 @@ import {KEEPSAKES} from '../campaign/journeyMastery';
 import type {ExternalSoundCue} from '../audio/useSoundscape';
 import {GameFeel} from '../rendering/gameFeel';
 
-function Button({label,onPress,disabled=false,quiet=false}:{label:string;onPress:()=>void;disabled?:boolean;quiet?:boolean}){
+function Button({label,onPress,disabled=false,quiet=false,fill=false}:{label:string;onPress:()=>void;disabled?:boolean;quiet?:boolean;fill?:boolean}){
   return <Pressable accessibilityRole="button" accessibilityState={{disabled}} disabled={disabled} onPress={onPress}
-    style={({pressed})=>[styles.button,quiet&&styles.quietButton,(pressed||disabled)&&styles.dim]}><Text style={styles.buttonText}>{label}</Text></Pressable>;
+    style={({pressed})=>[styles.button,fill&&styles.pauseAction,quiet&&styles.quietButton,(pressed||disabled)&&styles.dim]}><Text style={styles.buttonText}>{label}</Text></Pressable>;
 }
 const timeLeft=(seconds:number)=>{const left=Math.ceil(Math.max(0,seconds));return `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;};
 interface GameScreenProps{
   session:JourneySession;onSave:(session:JourneySession)=>void;onInterrupted:(session:JourneySession)=>void;
   onHome:()=>void;onNewJourney:()=>void;onRetrySave:()=>void;onRetryProfile:()=>void;
-  saveStatus:string;saveError:string;profileNotice:string;recoveryNotice:string;busy:boolean;
+  saving:boolean;saveError:string;profileNotice:string;recoveryNotice:string;busy:boolean;
   preferences:Readonly<Preferences>;profile:JourneyProfile;onProfileChange:(update:(profile:JourneyProfile)=>JourneyProfile)=>void;
   onJournal:()=>void;onPond:()=>void;onSettings:()=>void;onWatch:(speciesId:string)=>void;
   onSoundCue:(cue:ExternalSoundCue)=>void;
 }
 export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onRetrySave,onRetryProfile,
-  saveStatus,saveError,profileNotice,recoveryNotice,busy,preferences,profile,onProfileChange,onJournal,onPond,onSettings,onWatch,onSoundCue}:GameScreenProps){
+  saving,saveError,profileNotice,recoveryNotice,busy,preferences,profile,onProfileChange,onJournal,onPond,onSettings,onWatch,onSoundCue}:GameScreenProps){
   const [,setRevision]=useState(0),[width,setWidth]=useState(0),[appActive,setAppActive]=useState(AppState.currentState!=='background'&&AppState.currentState!=='inactive');
   const [evolutionReveal,setEvolutionReveal]=useState<string|undefined>();
   const activeRef=useRef(appActive);
@@ -117,7 +117,7 @@ export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onR
   const sidebarWidth=Math.max(160,Math.min(208,width*0.23));
   if(evolutionReveal)return <EvolutionReveal session={session} traitId={evolutionReveal} reducedMotion={preferences.reducedMotion} onDismiss={()=>setEvolutionReveal(undefined)}/>;
   if(session.finished&&session.progressionReady)return <EndingScreen session={session} profile={profile} preferences={preferences}
-    onPond={onPond} onJournal={onJournal} onNewJourney={onNewJourney} onHome={home} busy={busy} saving={saveStatus==='Saving…'}
+    onPond={onPond} onJournal={onJournal} onNewJourney={onNewJourney} onHome={home} busy={busy} saving={saving}
     error={saveError||profileNotice} onRetrySave={saveError?onRetrySave:onRetryProfile}/>;
   return <View style={styles.root} onLayout={e=>setWidth(e.nativeEvent.layout.width)}>
     <View style={styles.main}>
@@ -198,7 +198,13 @@ export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onR
           {run.state==='paused'&&<>
             <Text style={styles.title}>The pond can wait.</Text><Text style={styles.body}>Your colony is resting.</Text>
             {recoveryNotice!==''&&<Text style={styles.notice}>{recoveryNotice}</Text>}
-            <Button label="Resume" onPress={pause}/>
+            <View style={styles.pauseActions}>
+              <Button label="Resume" onPress={pause} fill/>
+              <Button label="Return to title" onPress={home} disabled={busy} quiet fill/>
+              <Button label="Field journal" onPress={onJournal} quiet fill/>
+              <Button label="Home pond" onPress={onPond} quiet fill/>
+              <Button label="Settings" onPress={onSettings} quiet fill/>
+            </View>
             <Text style={styles.credits}>Petriverse by Marco van Hylckama Vlieg{`\n`}Mobile adaptation by Henri Hubert / AI Engineer Hub{`\n`}Original game and artwork: CC BY-NC 4.0</Text>
           </>}
           {run.state==='loss'&&<>
@@ -217,12 +223,14 @@ export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onR
             </>}
             {session.finished&&<Text style={styles.body}>Your colony is arriving home…</Text>}
           </>}
-          <View style={styles.row}><Button label="Field journal" onPress={onJournal} quiet/><Button label="Home pond" onPress={onPond} quiet/><Button label="Settings" onPress={onSettings} quiet/></View>
-          <View style={styles.row}><Button label="Return to title" onPress={home} disabled={busy} quiet/></View>
-          {saveError!==''?<>
+          {run.state!=='paused'&&<>
+            <View style={styles.row}><Button label="Field journal" onPress={onJournal} quiet/><Button label="Home pond" onPress={onPond} quiet/><Button label="Settings" onPress={onSettings} quiet/></View>
+            <View style={styles.row}><Button label="Return to title" onPress={home} disabled={busy} quiet/></View>
+          </>}
+          {saveError!==''&&<>
             <Text accessibilityLiveRegion="polite" style={styles.saveError}>{saveError}</Text>
             <Button label="Try saving again" onPress={onRetrySave} disabled={busy} quiet/>
-          </>:<Text accessibilityLiveRegion="polite" style={styles.detail}>{saveStatus}</Text>}
+          </>}
           {profileNotice!==''&&<><Text style={styles.notice}>{profileNotice}</Text><Button label="Retry profile" onPress={onRetryProfile} disabled={busy} quiet/></>}
         </ScrollView>
       </View>}
@@ -240,7 +248,8 @@ const styles=StyleSheet.create({
   play:{flex:1,minWidth:0},guidance:{gap:3,backgroundColor:'#10272c',borderRadius:8,padding:8},guideTitle:{color:'#d8e7d8',fontSize:12,fontWeight:'500'},guideDetail:{color:'#9bb6b4',fontSize:11,lineHeight:15},cameraHint:{color:'#87a5a5',fontSize:10,lineHeight:14,marginTop:6},
   overlay:{...StyleSheet.absoluteFill,backgroundColor:'#041015c9',alignItems:'center',justifyContent:'center',padding:10},card:{flexGrow:0,maxHeight:'100%',width:'94%',maxWidth:640,backgroundColor:'#0c242b',borderColor:'#2c5055',borderWidth:1,borderRadius:18},cardContent:{padding:20,gap:10},
   eyebrow:{fontSize:10,color:'#9ac8c2',letterSpacing:2},title:{color:'#e3eee4',fontSize:24,fontWeight:'500'},body:{color:'#c0d3ce',fontSize:13,lineHeight:19},
-  button:{minHeight:44,paddingHorizontal:16,paddingVertical:12,alignItems:'center',justifyContent:'center',backgroundColor:'#325f5b',borderRadius:10,borderWidth:1,borderColor:'#59857b'},quietButton:{backgroundColor:'#112b30',borderColor:'#34585e'},buttonText:{color:'#e0eee0',fontSize:12,fontWeight:'600'},dim:{opacity:0.45},
+  button:{minHeight:44,paddingHorizontal:16,paddingVertical:12,alignItems:'center',justifyContent:'center',backgroundColor:'#325f5b',borderRadius:10,borderWidth:1,borderColor:'#59857b'},quietButton:{backgroundColor:'#112b30',borderColor:'#34585e'},buttonText:{color:'#e0eee0',fontSize:12,fontWeight:'600',textAlign:'center'},dim:{opacity:0.45},
+  pauseActions:{flexDirection:'row',gap:8},pauseAction:{flex:1,minWidth:0,paddingHorizontal:6},
   row:{flexDirection:'row',flexWrap:'wrap',gap:10},offers:{flexDirection:'row',flexWrap:'wrap',gap:10},offer:{flexGrow:1,flexBasis:165,gap:8,backgroundColor:'#102e34',padding:12,borderRadius:10},credits:{color:'#87a5a5',fontSize:11,lineHeight:17,marginTop:12},
   saveError:{color:'#f0c1ac',fontSize:12,lineHeight:17},
 });

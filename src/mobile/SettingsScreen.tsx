@@ -55,7 +55,7 @@ export function SettingsScreen({value,onChange,onBack,onRetry,error='',saving=fa
     <Text accessibilityRole="header" style={heading}>Visual quality</Text>
     <Text style={text}>Lower quality reduces decorative detail for a quieter pond and smoother play.</Text>
     <View style={styles.options}>{(['Light','Balanced','Full'] as const).map((label,index)=>button(label,()=>onChange({visualQuality:index as 0|1|2}),readOnly,value.visualQuality===index))}</View>
-    <Text accessibilityLiveRegion="polite" style={[...text,styles.detail]}>{saving?'Saving settings…':readOnly?'Saved settings are protected until they can be read.':'Settings save automatically on this device.'}</Text>
+    {readOnly&&<Text accessibilityLiveRegion="polite" style={[...text,styles.detail]}>Saved settings are protected until they can be read.</Text>}
     {!!error&&<View style={styles.notice}><Text accessibilityRole="alert" style={text}>{error}</Text>{button('Retry saving settings',onRetry,saving)}</View>}
     <View style={styles.options}>{button('Restore defaults',()=>onChange({...DEFAULT_PREFERENCES}),readOnly)}{button('Back',onBack)}</View>
   </ScrollView></View>;

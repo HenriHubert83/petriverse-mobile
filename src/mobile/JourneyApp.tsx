@@ -120,7 +120,7 @@ export function JourneyApp(){
   </ScrollView></View>);
   if(coordinator.screen==='game'&&coordinator.session)return wrap(<GameScreen session={coordinator.session}
     onSave={save} onInterrupted={interrupt} onHome={home} onNewJourney={requestNew}
-    saveStatus={coordinator.saving?'Saving…':coordinator.savedAt?'Progress saved':'Automatic saving is on'}
+    saving={coordinator.saving}
     saveError={coordinator.error} profileNotice={coordinator.profileError} recoveryNotice={coordinator.notice}
     onRetrySave={retrySave} onRetryProfile={retryProfile} busy={coordinator.busy} preferences={prefs} profile={coordinator.profile}
     onProfileChange={profileChange} onJournal={()=>openPanel('journal')} onPond={()=>openPanel('pond')} onSettings={()=>openPanel('settings')} onWatch={watch} onSoundCue={playCue}/>);
@@ -139,7 +139,7 @@ export function JourneyApp(){
         <Text style={styles.body}>Use one finger to draw or nudge. Pinch with two fingers to zoom, and move both fingers to pan. Tap Fit to see the whole dish again.</Text>
         <Text style={styles.body}>Gather green food and protect Mother. Keep purple cysts and Mother outside your loops. Drag a cyst aside when your nudge is ready.</Text>
         <Text style={styles.body}>Follow each encounter’s goals. Spend saved food on adaptations or repairs between encounters.</Text>
-        <Text style={styles.body}>Your journey saves automatically during play. Returning from another app pauses the pond; tap Resume when you are ready.</Text>
+        <Text style={styles.body}>Returning from another app pauses the pond; tap Resume when you are ready.</Text>
         <Text style={styles.credits}>Original game and artwork: CC BY-NC 4.0.</Text>
         <MenuButton label="Back" onPress={()=>setHelp(false)} quiet/>
       </>:<>
@@ -171,7 +171,6 @@ export function JourneyApp(){
           </View>
         </View>
         {coordinator.profile.bestScore>0&&<Text style={styles.detail}>Best score {coordinator.profile.bestScore} · {coordinator.profile.victories} journeys completed</Text>}
-        {coordinator.saving&&<Text accessibilityLiveRegion="polite" style={styles.detail}>Saving…</Text>}
       </>}
     </View>
   </ScrollView></View>);
