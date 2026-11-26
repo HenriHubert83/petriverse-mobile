@@ -1,6 +1,6 @@
 # Internal TestFlight beta
 
-Petriverse uses the `testflight` EAS build and submit profiles. The build inherits production settings: store distribution, a physical-device iOS Release build, and automatic build-number increments managed by EAS. Android preview APK and production app-bundle formats are preserved.
+Petriverse includes `testflight` EAS build and submit profiles for direct EAS builds. The build inherits production settings: store distribution, a physical-device iOS Release build, and automatic build-number increments managed by EAS. Android preview APK and production app-bundle formats are preserved. Replit also provides its own integrated Expo Launch flow.
 
 The iOS bundle identifier is `com.aiengineerhub.petriverse`. Keep that identifier when creating or selecting its Apple app record. EAS manages the developer-facing build number; the player-facing version stays in `app.json`. The `preview` profile's internal distribution is ad hoc distribution, not TestFlight.
 
@@ -8,9 +8,23 @@ The app config includes an opaque 1024-pixel icon, landscape support, an iPad fu
 
 The lockfile uses public npm tarball URLs so the same pinned versions and integrity hashes can install on Expo's build servers as well as Replit.
 
-## 1. Update the Replit checkout
+## Recommended route in Replit
 
-Use the Replit Shell in the project root. Commit or otherwise preserve any existing local work before switching branches or pulling. Use Node 22.13 or later, as required by this project.
+Open the existing Petriverse project in Replit's browser Project Editor after syncing the latest development branch while preserving local commits and the mobile workflow.
+
+1. Open **Publishing** and select **Start publishing to the App Store** to open Expo Launch.
+2. Confirm the Petriverse Expo project or choose **Use existing** for its verified project. Retain the name Petriverse and slug petriverse-mobile.
+3. Sign in with the Apple Developer account that should own the game and complete its verification prompts.
+4. Select or create the Apple app using **com.aiengineerhub.petriverse**. Verify this identifier before the first upload.
+5. Let Launch configure signing, then select **Launch to App Store** when ready to build and upload. After processing, use the internal TestFlight group described below. A TestFlight upload does not itself release the app publicly.
+
+Use the launch workflow's displayed build and submission status as the source of truth. Do not assume it uses the repository's `testflight` profile or an existing CLI session. Review and sync any configuration changes it produces back to the development branch.
+
+Replit's current documentation says standalone EAS CLI and EAS Build are not supported inside Replit. The commands below are an alternative for a separate development machine with this GitHub checkout, not a requirement for Replit's integrated Launch flow. If the App Store option is unavailable for the imported project, use that alternative rather than converting the game to a website.
+
+## Manual EAS alternative: 1. Update the development checkout
+
+Use a supported development host with Node 22.13 or later. Commit or otherwise preserve any existing local work before switching branches or pulling. If the branch has diverged, reconcile its local commits before continuing; do not discard them to force a pull.
 
 ```sh
 git status --short
@@ -61,7 +75,7 @@ This step requires an active Apple Developer Program membership and access to th
 npx --yes eas-cli@latest build --platform ios --profile testflight
 ```
 
-Wait for the build to finish successfully. Record the EAS build ID from that build's output or details page. EAS runs the native iOS build in the cloud, so Replit does not need Xcode.
+Wait for the build to finish successfully. Record the EAS build ID from that build's output or details page. EAS runs the native iOS build in the cloud, so the development host does not need Xcode.
 
 ## 4. Upload that exact build
 
@@ -101,4 +115,4 @@ Configuration alone does not establish that a signed build works on a device. Th
 
 An initial local iOS Prebuild confirmed the icon, bundle settings, landscape orientations, export declaration, app privacy manifest and absence of microphone/background-audio entries. This did not run Xcode, signing, CocoaPods privacy aggregation or Apple's upload validation. The iPad full-screen flag is a compatibility setting; newer iPad windowing behavior still needs device verification.
 
-References: [Expo TestFlight submission](https://docs.expo.dev/submit/testflight/), [EAS configuration](https://docs.expo.dev/eas/json/), [remote app versions](https://docs.expo.dev/build-reference/app-versions/), [EAS CLI](https://docs.expo.dev/eas/cli/).
+References: [Replit's integrated App Store flow](https://docs.replit.com/build/mobile-app#publish-to-the-app-store), [Replit native mobile support](https://docs.replit.com/features/artifact-types/building-mobile-apps), [Expo TestFlight submission](https://docs.expo.dev/submit/testflight/), [EAS configuration](https://docs.expo.dev/eas/json/), [remote app versions](https://docs.expo.dev/build-reference/app-versions/), [EAS CLI](https://docs.expo.dev/eas/cli/).
