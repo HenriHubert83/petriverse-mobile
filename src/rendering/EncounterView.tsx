@@ -138,7 +138,10 @@ export function EncounterView({run,touch,tracers,onInteraction,reducedMotion=fal
         <Circle cx={center.x} cy={center.y} r={radius} color="#527d7d" style="stroke" strokeWidth={highContrast?2:0.4}/>
         <Group clip={clip}>
           {!highContrast&&fieldImage&&fluidChild&&<PondAmbient look={look} clock={clock} motion={motion} quality={visualQuality} fluid={run.fluid} image={images.pondLife} fieldEffect={effects.field} fieldUniforms={fieldUniforms} fieldChildren={fieldChildren} traveller={event?.kind==='traveller'&&event.age>=0?{position:event.position,strength:event.strength}:undefined}/>}
-          {[...dustBuckets].map(([key,b])=><Group key={`dust${key}`} opacity={b.opacity}>{b.points.length>0&&<Points points={b.points} mode="points" strokeWidth={b.size} strokeCap="round" color={b.color}/>} {b.path&&<Path path={b.path} strokeWidth={b.size} style="stroke" color={b.color}/>}</Group>)}
+          {[...dustBuckets].map(([key,b])=><Group key={`dust${key}`} opacity={b.opacity}>
+            {b.points.length>0&&<Points points={b.points} mode="points" strokeWidth={b.size} strokeCap="round" color={b.color}/>}
+            {b.path.length>0&&<Path path={b.path} strokeWidth={b.size} style="stroke" color={b.color}/>}
+          </Group>)}
           {run.residuals.map((m,i)=><Path key={`res${i}`} path={pathFor(m.polygon,true)} color="#81c2c0" style="stroke" strokeWidth={3} opacity={m.remaining/4*0.3}/>)}
           {run.harvest.ecology.warningSites(run).map((w,i)=><Circle key={`warn${i}`} cx={w.position.x} cy={w.position.y} r={18+Math.sin(clock*3)*3} style="stroke" strokeWidth={2} color="#e7c591" opacity={0.6}/>)}
           {event?.kind==='hatching'&&event.age>=14&&event.age<22&&run.harvest.events.sites.map((p,i)=><Circle key={`hatch${i}`} cx={p.x} cy={p.y} r={18} style="stroke" strokeWidth={2} color="#ba91b8"/>)}
@@ -187,7 +190,10 @@ export function EncounterView({run,touch,tracers,onInteraction,reducedMotion=fal
           {selectionPoints.length>1&&<Path path={pathFor(selectionPoints,run.selection.closed)} style="stroke" strokeWidth={highContrast?4.5:3} color={run.selection.motherBlocked()?'#e3949a':'#c6e9d7'}/>}
           {nudge&&<Path path={pathFor([nudge.nucleus,add(nudge.nucleus,run.nudge.displacement(run))])} style="stroke" strokeWidth={3} color="#c8a5d0"/>}
           <HarvestFlow clots={run.clots} target={center} reducedMotion={reducedMotion}/>
-          {[...tissueMotion].map(([key,b])=><Group key={`motion${key}`} opacity={b.opacity}>{b.path&&<Path path={b.path} style="stroke" strokeWidth={b.width} color={b.color}/>} {b.points.length>0&&<Points points={b.points} mode="points" strokeCap="round" strokeWidth={b.width} color={b.color}/>}</Group>)}
+          {[...tissueMotion].map(([key,b])=><Group key={`motion${key}`} opacity={b.opacity}>
+            {b.path.length>0&&<Path path={b.path} style="stroke" strokeWidth={b.width} color={b.color}/>}
+            {b.points.length>0&&<Points points={b.points} mode="points" strokeCap="round" strokeWidth={b.width} color={b.color}/>}
+          </Group>)}
           {feel&&<GameFeelLayer feel={feel} run={run}/>}
           {children}
         </Group>

@@ -32,6 +32,9 @@ export function PondAmbient({look,clock,motion,quality,fluid,image,fieldEffect,f
   {image&&effect&&fieldEffect&&visible.map(({s,value},i)=>{const extent=value.extent,origin=[value.at.x-extent/2,value.at.y-extent/2];return <Group key={i} origin={vec(value.at.x,value.at.y)} transform={[{rotate:value.angle}]}><Rect x={origin[0]} y={origin[1]} width={extent} height={extent}><Shader source={effect} uniforms={{clock,motion,phase:s.phase,kind:s.kind,blur:value.blur,opacity:s.opacity,water_grade:look.waterGrade,water_base:look.waterBase.slice(),light_direction:look.lightDirection,depth:value.depth,frame_origin:[s.kind%2*.5,Math.floor(s.kind/2)*.5],textureSize:[image.width(),image.height()],spriteOrigin:origin,displayExtent:extent,spriteAnchor:[value.at.x,value.at.y],spriteRotation:value.angle}}>
     <Shader source={fieldEffect} uniforms={fieldUniforms}>{fieldChildren}</Shader><ImageShader image={image} fit="none" tx="clamp" ty="clamp"/>
    </Shader></Rect></Group>;})}
-  {[...buckets].map(([key,b])=><Group key={key} opacity={b.alpha}>{b.path&&<Path path={b.path} color="#66858c" style="stroke" strokeWidth={b.width}/>} {b.points.length>0&&<Points mode="points" points={b.points} strokeCap="round" color="#73979f" strokeWidth={b.width}/>}</Group>)}
+  {[...buckets].map(([key,b])=><Group key={key} opacity={b.alpha}>
+   {b.path.length>0&&<Path path={b.path} color="#66858c" style="stroke" strokeWidth={b.width}/>}
+   {b.points.length>0&&<Points mode="points" points={b.points} strokeCap="round" color="#73979f" strokeWidth={b.width}/>}
+  </Group>)}
  </Group>;
 }
