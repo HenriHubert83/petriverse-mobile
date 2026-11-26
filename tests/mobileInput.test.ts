@@ -6,6 +6,7 @@ import {SMALL_LESSON,WIDE_LESSON} from '../src/campaign/journeyLesson';
 import {TouchController} from '../src/mobile/touchController';
 import {boardViewport,toBoard,toScreen} from '../src/mobile/boardViewport';
 import {SimulationClock} from '../src/mobile/simulationClock';
+import {HarvestOrganism} from '../src/ecology/harvestOrganism';
 
 test('landscape viewport maps real board coordinates in both directions and rejects invalid bounds',()=>{
   for(const [width,height] of [[380,280],[690,340],[1000,720]]){
@@ -49,4 +50,41 @@ test('fixed stepping is frame-rate independent and discards suspended wall time'
   clock.advance(0,true,step);clock.advance(10000,false,step);assert.equal(steps,0);
   clock.reset();clock.advance(20000,true,step);clock.advance(20000+1000/60,true,step);assert.equal(steps,1);
   clock.advance(30000,true,step);assert.equal(steps,16);clock.advance(NaN,true,step);assert.equal(steps,16);
+});
+test('tap controls keep a loop between native touch groups and capture only on explicit action',()=>{
+  const run=new EncounterSimulation(authoredStage(0),{content:true,seed:73});run.begin();
+  const touch=new TouchController(run);touch.resize(600,350);touch.configure({clickMode:true,assistedClosure:true});
+  for(const index of [...SMALL_LESSON,SMALL_LESSON[0]]){
+    const point={...toScreen(run.board.anchors[index],touch.view),id:1};
+    touch.startTouches([point],true);touch.endTouches([],[point]);
+    assert.equal(run.loopsDrawn,0);
+  }
+  assert.equal(run.selection.closed,true);assert.equal(touch.captureSelection()?.valid,true);
+  assert.equal(run.harvest.nourishment,3);assert.equal(run.selection.active,false);
+});
+test('camera gestures, interruptions and control changes discard staged tap loops',()=>{
+  for(const reason of ['pinch','interrupt','mode']){
+    const run=new EncounterSimulation(authoredStage(0),{content:true,seed:73});run.begin();
+    const touch=new TouchController(run);touch.resize(600,350);touch.configure({clickMode:true,assistedClosure:false});
+    for(const index of [...SMALL_LESSON,SMALL_LESSON[0]]){
+      const point={...toScreen(run.board.anchors[index],touch.view),id:1};touch.startTouches([point],true);touch.endTouches([],[point]);
+    }
+    if(reason==='pinch'){
+      touch.startTouches([{id:1,x:200,y:175},{id:2,x:400,y:175}],true);
+      touch.endTouches([{id:1,x:200,y:175}],[{id:2,x:400,y:175}]);touch.endTouches([],[{id:1,x:200,y:175}]);
+    }else if(reason==='mode')touch.configure({clickMode:false,assistedClosure:false});else touch.cancel();
+    assert.equal(touch.captureSelection(),undefined);assert.equal(run.loopsDrawn,0);assert.equal(run.selection.active,false);
+  }
+});
+test('tap controls can nudge by two taps or a drag without leaving a stale target',()=>{
+  for(const drag of [false,true]){
+    const run=new EncounterSimulation(authoredStage(1),{content:true,seed:73});run.begin();
+    const cyst=new HarvestOrganism(900,'cyst',{x:640,y:200},{x:0,y:0},0);cyst.age=10;run.enemies=[cyst];
+    const touch=new TouchController(run);touch.resize(600,350);touch.configure({clickMode:true,assistedClosure:false});
+    const a={...toScreen(cyst.nucleus,touch.view),id:1},b={...toScreen({x:680,y:200},touch.view),id:2};
+    touch.startTouches([a],true);
+    if(drag){touch.moveTouches([{...b,id:1}]);touch.endTouches([],[{...b,id:1}]);}
+    else {touch.endTouches([],[a]);assert.equal(run.nudge.targetId,900);touch.startTouches([b],true);touch.endTouches([],[b]);}
+    assert.equal(run.nudge.targetId,-1);assert.equal(run.nudge.cooldown,6);assert.equal(run.loopsDrawn,0);
+  }
 });

@@ -1,5 +1,5 @@
 import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
-import {AppState,BackHandler,Pressable,ScrollView,StyleSheet,Text,View} from 'react-native';
+import {AppState,BackHandler,ScrollView,StyleSheet,View} from 'react-native';
 import {JourneySession} from '../campaign/journeySession';
 import {dishForStage} from '../campaign/journeyPlan';
 import {JourneyBoss} from '../campaign/journeyBoss';
@@ -8,6 +8,19 @@ import {EncounterView} from '../rendering/EncounterView';
 import {WaterTracers} from '../rendering/waterTracers';
 import {SimulationClock} from './simulationClock';
 import {TouchController} from './touchController';
+import {AppText as Text,AppPressable as Pressable} from './AccessibleText';
+import {habitatChoicePending,habitatName,habitatOptions} from '../campaign/journeyHabitats';
+import type {Preferences} from '../settings/preferences';
+import type {JourneyProfile} from '../storage/journeyProfile';
+import {DiscoveryOfferQueue,markFilmOffered} from '../cinema/discoveryOffers';
+import {creatureFilm} from '../cinema/creatureFilms';
+import {EvolutionPanel,EvolutionReveal} from './EvolutionPanel';
+import {EndingScreen} from './EndingScreen';
+import {GameplayGuidance} from './GameplayGuidance';
+import {CaptureFeedback,guidanceGoals} from './gameGuidance';
+import {KEEPSAKES} from '../campaign/journeyMastery';
+import type {ExternalSoundCue} from '../audio/useSoundscape';
+import {GameFeel} from '../rendering/gameFeel';
 
 function Button({label,onPress,disabled=false,quiet=false}:{label:string;onPress:()=>void;disabled?:boolean;quiet?:boolean}){
   return <Pressable accessibilityRole="button" accessibilityState={{disabled}} disabled={disabled} onPress={onPress}
@@ -18,21 +31,39 @@ interface GameScreenProps{
   session:JourneySession;onSave:(session:JourneySession)=>void;onInterrupted:(session:JourneySession)=>void;
   onHome:()=>void;onNewJourney:()=>void;onRetrySave:()=>void;onRetryProfile:()=>void;
   saveStatus:string;saveError:string;profileNotice:string;recoveryNotice:string;busy:boolean;
+  preferences:Readonly<Preferences>;profile:JourneyProfile;onProfileChange:(update:(profile:JourneyProfile)=>JourneyProfile)=>void;
+  onJournal:()=>void;onPond:()=>void;onSettings:()=>void;onWatch:(speciesId:string)=>void;
+  onSoundCue:(cue:ExternalSoundCue)=>void;
 }
 export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onRetrySave,onRetryProfile,
-  saveStatus,saveError,profileNotice,recoveryNotice,busy}:GameScreenProps){
+  saveStatus,saveError,profileNotice,recoveryNotice,busy,preferences,profile,onProfileChange,onJournal,onPond,onSettings,onWatch,onSoundCue}:GameScreenProps){
   const [,setRevision]=useState(0),[width,setWidth]=useState(0),[appActive,setAppActive]=useState(AppState.currentState!=='background'&&AppState.currentState!=='inactive');
+  const [evolutionReveal,setEvolutionReveal]=useState<string|undefined>();
   const activeRef=useRef(appActive);
   const refresh=useCallback(()=>setRevision(v=>v+1),[]);
   const run=session.current,touch=useMemo(()=>new TouchController(run),[run]);
+  useEffect(()=>{touch.configure(preferences);},[touch,preferences.clickMode,preferences.assistedClosure]);
   const tracers=useMemo(()=>new WaterTracers(),[run]);
+  const feedback=useMemo(()=>new CaptureFeedback(),[run]);
+  const updateFeedback=useCallback((delta:number)=>{
+    const serial=feedback.warningSerial;feedback.observe(run,delta);
+    if(feedback.warningSerial!==serial)onSoundCue({name:'warning',gain:.35,pitch:1});
+  },[feedback,run,onSoundCue]);
+  const [feel]=useState(()=>new GameFeel());
+  const updateFeel=useCallback((delta:number)=>{
+    feel.update(run,delta,{reducedMotion:preferences.reducedMotion,quality:preferences.visualQuality,journeyComplete:session.finished,encounterTotal:session.route.length});
+    for(const cue of feel.drainCues())onSoundCue(cue);
+  },[feel,run,preferences.reducedMotion,preferences.visualQuality,session,onSoundCue]);
+  useEffect(()=>{updateFeel(0);},[updateFeel]);
+  const [discoveryOffers]=useState(()=>new DiscoveryOfferQueue());
+  const discoveryProfile=useRef(profile);discoveryProfile.current=profile;
   const observed=useRef({run,state:run.state});
   if(observed.current.run!==run)observed.current={run,state:run.state};
   const observeState=useCallback(()=>{
     session.observeCompletion();
     if(observed.current.state!==run.state){observed.current.state=run.state;onSave(session);}
   },[session,run,onSave]);
-  const interaction=useCallback(()=>{observeState();refresh();},[observeState,refresh]);
+  const interaction=useCallback(()=>{updateFeedback(0);observeState();updateFeel(0);refresh();},[updateFeedback,observeState,updateFeel,refresh]);
   const running=appActive&&run.state!=='paused';
   useEffect(()=>{
     const subscription=AppState.addEventListener('change',state=>{
@@ -45,44 +76,54 @@ export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onR
   },[run,touch,session,onInterrupted,refresh]);
   useEffect(()=>{
     const handler=BackHandler.addEventListener('hardwareBackPress',()=>{
+      if(evolutionReveal){setEvolutionReveal(undefined);return true;}
       touch.cancel();
       if(run.state==='active'){run.togglePause();observed.current.state=run.state;onSave(session);refresh();}
       else onHome();
       return true;
     });return()=>handler.remove();
-  },[run,touch,session,onSave,onHome,refresh]);
+  },[run,touch,session,onSave,onHome,refresh,evolutionReveal]);
   useEffect(()=>{
     if(!running)return;
     const clock=new SimulationClock();let frame=0,lastRender=-Infinity,cancelled=false;
     const tick=(now:number)=>{
-      if(cancelled)return;clock.advance(now,true,delta=>session.update(delta));observeState();
+      if(cancelled)return;clock.advance(now,true,delta=>{
+        const pace=preferences.deliberateCapture&&run.state==='active'&&run.selection.closed ? .35 : 1;
+        session.update(delta*pace);updateFeedback(delta);updateFeel(delta);
+      });observeState();
       if(now-lastRender>=1000/30){
-        tracers.sync(run.fluid.clock,1,run.fluid,{key:`${session.seed}:${session.index}`,dustSeed:session.seed^session.index},0);
+        const offers=discoveryOffers.poll(run,discoveryProfile.current);
+        if(offers.length)onProfileChange(current=>markFilmOffered(current,offers));
+        tracers.sync(run.fluid.clock,preferences.reducedMotion?0:1,run.fluid,{key:`${session.seed}:${session.index}`,dustSeed:session.seed^session.index},preferences.visualQuality);
         lastRender=now;refresh();
       }
       const aftermath=run.clots.length||run.motherDamage.active()||run.amoebas.releases.length||run.phages.bursts.length;
-      if(['complete','loss'].includes(run.state)&&!aftermath){refresh();return;}
+      if(['complete','loss'].includes(run.state)&&!aftermath&&session.progressionReady){refresh();return;}
       frame=requestAnimationFrame(tick);
     };
     frame=requestAnimationFrame(tick);return()=>{cancelled=true;cancelAnimationFrame(frame);clock.reset();};
-  },[run,running,session,tracers,refresh,observeState]);
+  },[run,running,session,tracers,updateFeedback,updateFeel,refresh,observeState,preferences.deliberateCapture,preferences.reducedMotion,preferences.visualQuality,discoveryOffers,onProfileChange]);
   const changed=()=>{observed.current={run:session.current,state:session.current.state};onSave(session);refresh();};
   const pause=()=>{touch.cancel();run.togglePause();changed();};
-  const advance=(id:string)=>{touch.cancel();if(session.chooseEvolution(id))changed();};
+  const advance=(id:string)=>{touch.cancel();if(session.chooseEvolution(id)){if(id!=='continue'&&id!=='repair')setEvolutionReveal(id);changed();}};
   const home=()=>{touch.cancel();onHome();};
   const dish=dishForStage(run.stageIndex),spec=run.harvest.spec,harvest=run.harvest,boss=run.boss();
-  const lesson=run.lessonActive()?run.lesson.instruction(run):undefined,event=harvest.events.sample(run);
+  const lesson=run.lessonActive()?run.lesson.instruction(run):undefined;
   const growth=run.growthSlot();
+  const habitatPending=habitatChoicePending(run);
+  const pendingDiscovery=discoveryOffers.pendingIds[0];
   const progressTarget=spec.mode==='feed'?(harvest.hunterQuota()||spec.food):spec.target;
   const saveNeedsAttention=saveError!==''||profileNotice!=='';
   const sidebarWidth=Math.max(160,Math.min(208,width*0.23));
+  if(evolutionReveal)return <EvolutionReveal session={session} traitId={evolutionReveal} reducedMotion={preferences.reducedMotion} onDismiss={()=>setEvolutionReveal(undefined)}/>;
+  if(session.finished&&session.progressionReady)return <EndingScreen session={session} profile={profile} preferences={preferences}
+    onPond={onPond} onJournal={onJournal} onNewJourney={onNewJourney} onHome={home} busy={busy} saving={saveStatus==='Saving…'}
+    error={saveError||profileNotice} onRetrySave={saveError?onRetrySave:onRetryProfile}/>;
   return <View style={styles.root} onLayout={e=>setWidth(e.nativeEvent.layout.width)}>
     <View style={styles.main}>
       <View style={[styles.sidebar,{width:sidebarWidth}]}>
         <View style={styles.sideHeader}>
           <Text style={styles.brand}>PETRIVERSE</Text>
-          <Text style={styles.subtitle}>{dish.name} · {session.index+1} / {session.route.length}</Text>
-          <Text style={styles.encounterName}>{spec.name}</Text>
           <View style={styles.pauseSlot}>
             {(run.state==='active'||run.state==='paused')&&<Pressable accessibilityRole="button"
               accessibilityLabel={run.state==='paused'?'Resume':'Pause'}
@@ -92,34 +133,46 @@ export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onR
               {saveNeedsAttention&&<View pointerEvents="none" style={styles.saveIndicator}><Text style={styles.saveIndicatorText}>!</Text></View>}
             </Pressable>}
           </View>
+        </View>
+        <ScrollView style={styles.sideScroll} contentContainerStyle={styles.sideContent}>
+          <Text style={styles.subtitle}>{dish.name} · {session.index+1} / {session.route.length}</Text>
+          <Text style={styles.encounterName}>{spec.name}</Text>
           <View style={styles.metrics}>
             <View style={styles.metric}><Text style={styles.label}>MOTHER</Text><Text style={styles.value}>{run.integrity} / {run.maxIntegrity}</Text></View>
             <View style={styles.metric}><Text style={styles.label}>{spec.mode==='boss'?'PULSE FOOD':'FOOD'}</Text><Text style={styles.value}>{harvest.nourishment} / {spec.mode==='boss'?3:spec.food}</Text></View>
           </View>
           {spec.mode!=='feed'||harvest.hunterQuota()>0?<Text style={styles.detail}>{harvest.objectiveCount()} / {progressTarget} {harvest.objectiveLabel()}</Text>:null}
           <Text style={styles.timer}>{lesson?'Take your time':`${timeLeft(harvest.deadline()-run.stageElapsed)} left`}</Text>
-        </View>
-        <ScrollView style={styles.sideScroll} contentContainerStyle={styles.sideContent}>
-          {run.state==='active'&&<View style={styles.guidance}>
-            <Text style={styles.guideTitle}>{run.selection.rejectionReason||lesson?.title||event?.title||harvest.ecology.pressureText(run)}</Text>
-            <Text style={styles.guideDetail}>{lesson?.detail||event?.detail||(run.selection.active?'Return to your first cell, then release.':'Loop around green food. Keep purple cysts and Mother outside.')}</Text>
+          {(run.state==='complete'||run.state==='loss')&&!session.progressionReady&&<Text style={styles.notice}>{run.state==='complete'?'Your colony is settling…':'The pond grows quiet…'}</Text>}
+          {run.state==='active'&&<>
+            {run.selection.active&&<>{preferences.clickMode&&<Button label="Capture" disabled={!run.selection.closed} onPress={()=>{touch.captureSelection();interaction();}}/>}
+              <Button label="Cancel loop" quiet onPress={()=>{touch.cancel();refresh();}}/></>}
+            {run.nudge.targetId>=0&&<Button label="Cancel nudge" quiet onPress={()=>{touch.cancel();refresh();}}/>}
+            <GameplayGuidance run={run} clickMode={preferences.clickMode} feedback={feedback}/>
+          </>}
+          {run.state==='active'&&pendingDiscovery&&!run.selection.active&&run.nudge.targetId<0&&<View style={styles.guidance}>
+            <Text style={styles.guideTitle}>New discovery · {creatureFilm(pendingDiscovery)?.name}</Text>
+            <Button label="Watch discovery" onPress={()=>{const id=discoveryOffers.takeNext();if(id){touch.cancel();onWatch(id);}}}/>
+            <Button label="Later" quiet onPress={()=>{discoveryOffers.later();refresh();}}/>
           </View>}
           <Text style={styles.detail}>{run.growthActive('guard')>0?`${Math.max(0,run.growthActive('guard')-run.guardianSpent)} guard ready`:dish.subtitle}</Text>
-          <Text style={styles.detail}>Food saved {run.biomass} · Score {run.score}</Text>
+          <Text style={styles.detail}>Food saved {feel.shown('biomass',run.biomass)} · Score {feel.shown('score',run.score)}</Text>
           {run.mutations.length>0&&<Text style={styles.detail}>{run.mutations.map(id=>mutationDefinition(id)?.name??id).join('\n')}</Text>}
           {boss instanceof JourneyBoss&&<Text style={styles.notice}>{boss.statusText()}</Text>}
-          <Text style={styles.label}>NUDGE</Text><Text style={styles.detail}>{run.nudge.cooldown>0?`Ready in ${Math.ceil(run.nudge.cooldown)}s`:'Drag a purple cyst aside'}</Text>
+          <Text style={styles.label}>NUDGE</Text><Text style={styles.detail}>{run.nudge.cooldown>0?`Ready in ${Math.ceil(run.nudge.cooldown)}s`:preferences.clickMode?'Tap a purple cyst, then tap its destination.':'Drag a purple cyst aside'}</Text>
           <Text style={styles.cameraHint}>Pinch to zoom. Move two fingers to look around. Fit shows the whole dish.</Text>
         </ScrollView>
       </View>
       <View style={styles.play}>
-        <EncounterView run={run} touch={touch} tracers={tracers} onInteraction={interaction}/>
+        <EncounterView run={run} touch={touch} tracers={tracers} feel={feel} onInteraction={interaction}
+          reducedMotion={preferences.reducedMotion} highContrast={preferences.highContrast} visualQuality={preferences.visualQuality}/>
       </View>
-      {run.state!=='active'&&<View style={styles.overlay}>
+      {run.state!=='active'&&(!['complete','loss'].includes(run.state)||session.progressionReady)&&<View style={styles.overlay}>
         <ScrollView style={styles.card} contentContainerStyle={styles.cardContent}>
           {run.state==='brief'&&<>
             <Text style={styles.eyebrow}>{dish.name.toUpperCase()}</Text>
             <Text style={styles.title}>{spec.name}</Text><Text style={styles.body}>{spec.lesson}</Text>
+            {guidanceGoals(run).map(goal=><Text key={goal} style={styles.detail}>{goal}</Text>)}
             {growth>=0&&<>
               <Text style={styles.body}>A new organelle is growing. Choose how it helps your colony.</Text>
               <View style={styles.row}>
@@ -129,8 +182,18 @@ export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onR
             </>}
             {growth<0&&run.stageIndex===2&&run.growthRoles[1]&&<Text style={styles.detail}>New organelle: {run.growthRoles[1]}</Text>}
             {growth<0&&run.stageIndex===8&&run.growthRoles[5]&&<Text style={styles.detail}>New organelle: {run.growthRoles[5]}</Text>}
-            <Button label={session.index===0?'Begin the journey':'Enter the water'} onPress={()=>{session.begin();changed();}}/>
-            {session.index===0&&<Text style={styles.detail}>Drag between blue cells to draw a loop. Return to the first cell and release.</Text>}
+            {growth<0&&habitatPending&&<>
+              <Text style={styles.title}>Choose your habitat</Text><Text style={styles.body}>Where will your colony feed next?</Text>
+              <View style={styles.offers}>{habitatOptions(run).map(option=><View key={option.id} style={styles.offer}>
+                <Text style={styles.encounterName}>{option.name}</Text>{option.bullets.map(bullet=><Text key={bullet} style={styles.body}>{bullet}</Text>)}
+                <Button label={option.action} onPress={()=>{if(session.chooseHabitat(option.id))changed();}}/>
+              </View>)}</View>
+            </>}
+            {growth<0&&!habitatPending&&<>
+              {run.stageIndex>=2&&run.stageIndex%4!==3&&run.habitatContentEnabled&&<Text style={styles.notice}>{habitatName(run.stageIndex,run.habitatChoice)}</Text>}
+              <Button label={session.index===0?'Begin the journey':'Enter the water'} onPress={()=>{session.begin();changed();}}/>
+            </>}
+            {session.index===0&&<Text style={styles.detail}>{preferences.clickMode?'Tap blue cells to build a loop. Tap the first cell, then Capture.':'Drag between blue cells to draw a loop. Return to the first cell and release.'}</Text>}
           </>}
           {run.state==='paused'&&<>
             <Text style={styles.title}>The pond can wait.</Text><Text style={styles.body}>Your colony is resting.</Text>
@@ -147,20 +210,14 @@ export function GameScreen({session,onSave,onInterrupted,onHome,onNewJourney,onR
             <Text style={styles.eyebrow}>{session.finished?'JOURNEY COMPLETE':'ENCOUNTER COMPLETE'}</Text>
             <Text style={styles.title}>{session.finished?'A little universe, alive.':'Your colony is growing.'}</Text>
             <Text style={styles.body}>Score {run.score} · {run.biomass} food saved{session.finished?` · ${run.totalRescued} spores rescued`:''}</Text>
+            <Text style={styles.detail}>Health bonus +{run.stageBonus.health} · Swift finish +{run.stageBonus.swift} · Best flow {run.stageBonus.flow}</Text>
+            {run.masteryAwards.length>0&&<Text style={styles.notice}>{run.masteryAwards.map(award=>KEEPSAKES[award.id]).join(' · ')}</Text>}
             {!session.finished&&<>
-              {session.offers.length>0&&<Text style={styles.detail}>Choose an adaptation for {session.evolutionCost()} food, or save it for later.</Text>}
-              <View style={styles.offers}>{session.offers.map(id=>{
-                const mutation=mutationDefinition(id);if(!mutation)return null;
-                return <View style={styles.offer} key={id}><Text style={styles.encounterName}>{mutation.name}</Text><Text style={styles.body}>{mutation.detail}</Text>
-                  <Text style={styles.detail}>{mutation.tradeoff}</Text><Button label={`Adapt · ${session.evolutionCost()}`} disabled={run.biomass<session.evolutionCost()} onPress={()=>advance(id)}/></View>;
-              })}</View>
-              <View style={styles.row}>
-                <Button label="Continue" onPress={()=>advance('continue')}/>
-                {run.integrity<run.maxIntegrity&&<Button label="Heal up to 2 · 6 food" disabled={run.biomass<6} onPress={()=>advance('repair')} quiet/>}
-              </View>
+              <EvolutionPanel session={session} onChoose={advance} reducedMotion={preferences.reducedMotion}/>
             </>}
-            {session.finished&&<Button label="Begin a new journey" onPress={()=>{touch.cancel();onNewJourney();}} disabled={busy}/>}
+            {session.finished&&<Text style={styles.body}>Your colony is arriving home…</Text>}
           </>}
+          <View style={styles.row}><Button label="Field journal" onPress={onJournal} quiet/><Button label="Home pond" onPress={onPond} quiet/><Button label="Settings" onPress={onSettings} quiet/></View>
           <View style={styles.row}><Button label="Return to title" onPress={home} disabled={busy} quiet/></View>
           {saveError!==''?<>
             <Text accessibilityLiveRegion="polite" style={styles.saveError}>{saveError}</Text>

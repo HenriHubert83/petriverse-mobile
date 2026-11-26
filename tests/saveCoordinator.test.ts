@@ -152,3 +152,26 @@ test('an uncertain pointer commit blocks queued old writes and requires loading 
   assert.equal(coordinator.canRetryLoad,true);assert.match(coordinator.error,/could not be confirmed/);
   journey.beforeWrite=undefined;await coordinator.retryLoad();assert.equal(coordinator.session!.score,20);
 });
+
+test('profile-only edits serialize behind journey observations and survive retry without an active journey',async()=>{
+  const {coordinator,profile}=fixture();await coordinator.load();
+  profile.fail=true;
+  assert.equal(await coordinator.updateProfile(p=>({...p,best:100,seen:[...p.seen,88]})),false);
+  assert.equal(coordinator.profile.best,100);assert.match(coordinator.profileError,/pond could not be saved/);
+  profile.fail=false;await coordinator.retryProfile();assert.equal(profile.stored!.best,100);
+  assert.deepEqual(profile.stored!.seen,[88]);assert.equal(coordinator.profileError,'');
+  const other=fixture(oldSession());await other.coordinator.load();const hold=deferred(),started=deferred();
+  other.journey.beforeWrite=async()=>{started.resolve();await hold.promise;};
+  const old=other.coordinator.save();await started.promise;
+  const edit=other.coordinator.updateProfile(p=>({...p,best:900,seen:[...p.seen,55]}));
+  hold.resolve();await old;assert.equal(await edit,true);assert.equal(other.profile.stored!.best,900);
+  assert.deepEqual(other.profile.stored!.seen,[9,55]);
+});
+
+test('an unreadable profile is read-only for resident edits and cinema acknowledgements',async()=>{
+  const {coordinator,profile}=fixture();profile.result={status:'unsupported',message:'Future profile'};
+  await coordinator.load();let called=false;
+  assert.equal(coordinator.canEditProfile,false);
+  assert.equal(await coordinator.updateProfile(p=>{called=true;return {...p,best:900};}),false);
+  assert.equal(called,false);assert.equal(profile.writes.length,0);
+});

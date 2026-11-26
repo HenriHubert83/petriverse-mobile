@@ -25,6 +25,9 @@ import {SeededRandom} from './seededRandom';
 import {JourneyLesson,WIDE_LESSON} from '../campaign/journeyLesson';
 import {assignCreatureForm,discoveryId} from '../content/creatureCatalogue';
 import type {ExpeditionVisit} from '../campaign/expeditionCreatures';
+import {enterHabitat} from '../campaign/journeyHabitats';
+import type {HabitatId,HabitatHistory} from '../campaign/journeyHabitats';
+import type {ColonyId} from '../campaign/journeyPlan';
 
 export type EncounterState='brief'|'active'|'paused'|'complete'|'loss';
 export type GrowthRole='guard'|'feeder';
@@ -35,6 +38,7 @@ export interface EncounterOptions {
   biomass?:number;mutations?:readonly string[];growthRoles?:Readonly<Record<number,GrowthRole>>;
   content?:boolean;guidedLesson?:boolean;rng?:SeededRandom;hydrate?:boolean;
   creatureContentEnabled?:boolean;nextEnemyId?:number;expeditionRoster?:readonly ExpeditionVisit[];
+  habitatContentEnabled?:boolean;colonyId?:ColonyId;habitatHistory?:HabitatHistory;
 }
 const len=(p:Point)=>Math.hypot(p.x,p.y);
 const limit=(p:Point,max:number):Point=>len(p)>max?scale(p,max/len(p)):p;
@@ -46,6 +50,8 @@ export class EncounterSimulation {
   readonly harvest:JourneyHarvest;readonly runSeed:number;readonly encounterIndex:number;readonly encounterKey:string;
   readonly contentEnabled:boolean;readonly rng:SeededRandom;readonly lesson=new JourneyLesson();
   readonly creatureContentEnabled:boolean;expeditionRoster:ExpeditionVisit[];
+  readonly habitatContentEnabled:boolean;readonly colonyId:ColonyId;
+  habitatChoice:HabitatId='bloom';habitatConfirmed=false;habitatApplied=false;habitatHistory:HabitatHistory;
   readonly maxIntegrity:number;readonly mutations:readonly string[];readonly growthRoles:Record<number,GrowthRole>;
   state:EncounterState='brief';enemies:Drifter[]=[];nextEnemyId=0;
   elapsed=0;stageElapsed=0;integrity:number;biomass:number;score=0;kills=0;totalFood=0;totalRescued=0;
@@ -63,6 +69,9 @@ export class EncounterSimulation {
     this.runSeed=options.seed??1;this.encounterIndex=options.encounterIndex??spec.stage;
     this.rng=options.rng??new SeededRandom(this.runSeed);this.contentEnabled=options.content??false;
     this.creatureContentEnabled=options.creatureContentEnabled??true;
+    this.habitatContentEnabled=options.habitatContentEnabled??this.creatureContentEnabled;this.colonyId=options.colonyId??'wanderer';
+    if(!this.habitatContentEnabled){this.habitatConfirmed=true;this.habitatApplied=true;}
+    this.habitatHistory={...options.habitatHistory};
     this.nextEnemyId=options.nextEnemyId??0;
     this.expeditionRoster=(options.expeditionRoster??[]).map(visit=>({...visit}));
     this.encounterKey=options.encounterIndex===undefined?String(spec.stage):`route:${options.encounterIndex}`;
@@ -92,7 +101,10 @@ export class EncounterSimulation {
     const slot=this.growthSlot();if(this.state!=='brief'||slot<0||!['guard','feeder'].includes(role))return false;
     this.growthRoles[slot]=role;return true;
   }
-  begin():boolean{if(this.state!=='brief')return false;if(this.growthSlot()>=0)this.chooseGrowthRole('guard');this.state='active';return true;}
+  begin():boolean{
+    if(this.state!=='brief')return false;if(this.growthSlot()>=0)this.chooseGrowthRole('guard');
+    enterHabitat(this);this.state='active';return true;
+  }
   isReady(id:number):boolean{return Number.isInteger(id)&&id>=0&&id<this.cells.length&&this.cells[id].isReady()&&!this.harvest.ecology.blocked(this,id);}
   targetSnapshot():Target[]{
     return this.enemies.map(b=>({id:b.id,position:{...b.nucleus},nuclei:b.nuclei().map(p=>({...p})),health:b.health,kind:b.kind,eligible:b.canTakePulse()}));

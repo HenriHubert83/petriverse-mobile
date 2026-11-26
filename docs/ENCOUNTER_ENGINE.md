@@ -45,11 +45,13 @@ Rendering uses the actual board, organisms, recovery positions, selection polygo
 
 Forty-eight original PNGs (81,007,867 bytes) were verified against the pinned manifest and imported unchanged. Each needed texture is loaded once per active texture key, shared between sprites and released from the view cache when unused. Base sprite dimensions and nucleus offsets follow `microscope.gd`; form offsets follow `creature_forms.gd` and `expedition_creatures.gd`. Live visitors and absorbed rare forms retain their source display extents. Clots use the existing CPU recovery model; water tracers use the previously ported low-quality count. Membrane RuntimeEffect compilation has a translucent fallback. Rendering refreshes at up to 30 Hz while active simulation advances at 60 Hz. Terminal animation stops after remaining effects finish.
 
-These are implementation details, not measured device performance. Tissue deformation, detailed ingestion, optical refraction, original particle shaders, full Mother injury visuals, original fonts and audio remain unfinished. The traveller's visual is a temporary submerged glow, while its current rule is implemented.
+These are implementation details, not measured device performance. The following full-system pass adds source tissue deformation, fusion and optical shaders, specialized Mother art, original fonts/audio and quality/accessibility controls. The source matrix distinguishes implemented effects from native parity checks. The traveller's visual is a temporary submerged glow, while its current rule is implemented.
 
-## Still outside this checkpoint
+## Expanded mobile systems (2026-11-26)
 
-Complete preferences/settings, desktop-save migration and future profile integrations; home pond/resident management; habitat route choices; colony unlock/selection; narrated discoveries and field journal; settings/accessibility/reduced-motion controls; complete audio/visual effects; legacy 30-encounter save compatibility and final surges. Cosmetic forms and rare populations use separate source-compatible seeded streams; full same-seed Godot replay parity is not claimed while habitat and colony systems remain unported. Current mobile state now has durable snapshots and recovery; physical-device process-termination testing of this new increment remains pending.
+The current app also connects the Field Journal, 44 real narrated demonstrations, resident home pond, habitat route selection, all three starting colonies, durable settings/accessibility/audio, original evolution comparison/reveal, live final pond and public producer-lab Experiments. These isolated scenes do not advance the saved journey. Detailed status and native verification limits are in FEATURE_PARITY.md and SOURCE_MIGRATION_MATRIX.md.
+
+Desktop Godot save import, earlier 30-encounter routes and development-only legacy fixtures are not claimed. Device process-termination, full journey playthrough, detailed source screenshot comparisons and performance remain unverified for this pass.
 
 ## Verification on 2026-11-25
 

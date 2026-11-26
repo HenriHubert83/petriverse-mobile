@@ -26,7 +26,9 @@ const step=(s:JourneySession,frames:number)=>{for(let i=0;i<frames;i++)s.update(
 function complete(s:JourneySession){
   const r=s.current;s.begin();if(r.stageIndex===0)r.lesson.stepIndex=4;r.harvest.nourishment=r.harvest.spec.food;
   r.harvest.rescued=20;r.harvest.purified=20;r.harvest.defended=20;r.harvest.visited=[0,1,2,3,4,5,6,7];
-  r.harvest.huntersCaptured=20;r.bossDefeated=r.harvest.spec.mode==='boss';r.harvest.checkCompletion(r);s.observeCompletion();
+  r.harvest.huntersCaptured=20;r.bossDefeated=r.harvest.spec.mode==='boss';r.harvest.checkCompletion(r);s.observeCompletion();s.update(1.6);
+  for(let i=0;i<600&&!s.progressionReady;i++)s.update(1/60);
+  assert.equal(s.progressionReady,true);
   assert.equal(r.state,'complete');
 }
 function recovered(result:Awaited<ReturnType<JourneyRecoveryRepository['load']>>){

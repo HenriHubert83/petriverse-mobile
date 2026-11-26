@@ -7,11 +7,14 @@ function finish(session:JourneySession):void{
   const run=session.current;session.begin();run.lesson.stepIndex=4;
   run.harvest.nourishment=run.harvest.spec.food;run.harvest.rescued=20;run.harvest.purified=20;run.harvest.defended=20;
   run.harvest.visited=[0,1,2,3,4,5,6,7];run.harvest.huntersCaptured=20;run.bossDefeated=run.harvest.spec.mode==='boss';
-  run.harvest.checkCompletion(run);session.observeCompletion();assert.equal(run.state,'complete');
+  run.harvest.checkCompletion(run);session.observeCompletion();session.update(1.6);assert.equal(run.state,'complete');
+  for(let i=0;i<600&&!session.progressionReady;i++)session.update(1/60);
+  assert.equal(session.progressionReady,true);
 }
 test('real opening harvest buys its first adaptation and carries colony state into the next encounter',()=>{
   const session=new JourneySession(73);session.begin();session.current.capture(SMALL_LESSON);session.update(7);session.current.capture(WIDE_LESSON);session.update(7);
   assert.equal(session.current.state,'complete');assert.deepEqual(session.offers,['fission','elastic']);assert.equal(session.current.biomass,9);
+  session.update(1.6);
   const score=session.current.score;assert.equal(session.chooseEvolution('unknown'),false);assert.equal(session.chooseEvolution('fission'),true);
   assert.equal(session.index,1);assert.equal(session.current.state,'brief');assert.deepEqual(session.current.mutations,['fission']);
   assert.equal(session.current.biomass,3);assert.equal(session.current.score,score);assert.equal(session.current.totalFood,9);

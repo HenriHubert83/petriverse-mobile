@@ -38,7 +38,8 @@ export class WaterTracers {
     }
   }
   // Each visible mote: position, rotation, speed fraction, glint flag,
-  // size, depth, phase fraction and rate. A future GPU batch consumes this.
+  // size, depth, phase fraction and rate. Native rendering currently batches
+  // these properties into bounded Points/Path draw buckets in EncounterView.
   instanceData():Float32Array{
     const data=new Float32Array((this.visible?this.visibleCount:0)*9);
     for(let i=0;i<data.length/9;i++){

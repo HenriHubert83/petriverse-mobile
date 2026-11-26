@@ -12,6 +12,7 @@ import {Amoeba} from './amoeba';
 import {Bacterium} from './bacterium';
 import {contains,polygonFor} from '../geometry/loopGeometry';
 import {pacing,rhythmSample} from '../campaign/encounterRhythm';
+import {habitatHunterArrives,habitatExtraHunters} from '../campaign/journeyHabitats';
 
 export interface ArrivalEvent {at:number;kind:string;area:number;species?:string}
 const dist=(a:Point,b:Point)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -58,9 +59,9 @@ export class EncounterEcology {
     else if((stage===2&&this.wave===1)||(stage>=4&&this.wave%3===1))family='bacterium';
     const at=run.stageElapsed+8,early=stage>=4&&run.mutations.length>=5,pace=pacing(stage);
     this.pending.push({at,kind:'bloom',area},{at,kind:family,area});
-    if((stage>=2||this.wave>0)&&!(spec.phageLesson&&this.wave===0)){
+    if((stage>=2||this.wave>0)&&habitatHunterArrives(run,this.wave)&&!(spec.phageLesson&&this.wave===0)){
       this.pending.push({at:early?at:at+4,kind:'hunter',area:(area+3)%8,...(spec.hunter?{species:spec.hunter}:{})});
-      if(pace.extraEvery>0&&this.wave%pace.extraEvery===0)this.pending.push({at:early?at+6:at+10,kind:'hunter',area:(area+6)%8,species:'drifter'});
+      if(pace.extraEvery>0&&this.wave%pace.extraEvery===0&&habitatExtraHunters(run))this.pending.push({at:early?at+6:at+10,kind:'hunter',area:(area+6)%8,species:'drifter'});
     }
     if(spec.mode==='rescue')this.pending.push({at,kind:'spore',area});
     this.wave++;this.announce('Life approaches in 8s · watch the marked water');

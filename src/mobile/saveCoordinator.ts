@@ -37,6 +37,7 @@ export class SaveCoordinator<Session,Snapshot,Profile>{
   get canContinue():boolean{return this.loaded&&!this.busy&&this.session!==undefined;}
   get canRetryLoad():boolean{return this.loaded&&!this.busy&&!this.session&&['error','unsupported'].includes(this.loadStatus);}
   get isFinished():boolean{return this.session!==undefined&&this.options.finished(this.session);}
+  get canEditProfile():boolean{return this.loaded&&!this.busy&&this.profileWritable&&this.attached;}
   private enqueue<T>(operation:()=>Promise<T>):Promise<T>{
     this.pending++;this.saving=true;this.notify();
     const result=this.queue.then(operation);
@@ -96,8 +97,8 @@ export class SaveCoordinator<Session,Snapshot,Profile>{
         try{this.applyProfileLoad(await this.options.profile.load());}
         catch{this.profileWritable=false;this.profileError='Your profile could not be loaded. Journey saves are still available.';}
       }
-      if(this.profileWritable&&this.session){
-        this.profile=this.options.observeProfile(this.profile,this.session);
+      if(this.profileWritable){
+        if(this.session)this.profile=this.options.observeProfile(this.profile,this.session);
         await this.saveProfile(this.profile);
       }
     }catch{this.profileError='Your profile could not be updated. Your journey is still available.';}
@@ -107,6 +108,19 @@ export class SaveCoordinator<Session,Snapshot,Profile>{
   continueJourney():boolean{
     if(!this.canContinue)return false;
     this.options.pause(this.session!);this.screen='game';this.notify();return true;
+  }
+  // Profile-only actions use the same queue as journey observations. Keep the
+  // newest edits in memory after a write failure so Retry never reloads over them.
+  updateProfile(update:(profile:Profile)=>Profile):Promise<boolean>{
+    if(!this.canEditProfile)return Promise.resolve(false);
+    let next:Profile;
+    try{next=update(this.profile);}
+    catch{this.profileError='Your pond could not be updated. Please try again.';this.notify();return Promise.resolve(false);}
+    this.profile=next;this.notify();
+    return this.enqueue(async()=>{
+      if(!this.attached||!this.profileWritable)return false;
+      return this.saveProfile(next);
+    });
   }
   async startNew(confirmed=false):Promise<boolean>{
     if(!this.canStart||(this.needsConfirmation&&!confirmed))return false;
@@ -164,9 +178,9 @@ export class SaveCoordinator<Session,Snapshot,Profile>{
     this.loadStatus='error';this.session=undefined;this.screen='menu';
     this.error='Saving could not be confirmed. Retry loading to check your saved journey.';return true;
   }
-  private async saveProfile(profile:Profile):Promise<void>{
-    try{await this.options.profile.save(profile);this.profileError='';}
-    catch{this.profileError='Your journey was saved, but your profile could not be saved. Please try saving again.';}
+  private async saveProfile(profile:Profile):Promise<boolean>{
+    try{await this.options.profile.save(profile);this.profileError='';return true;}
+    catch{this.profileError=this.session?'Your journey was saved, but your profile could not be saved. Please try saving again.':'Your pond could not be saved. Keep the app open and try again.';return false;}
   }
   interrupt(session:Session|undefined=this.session):Promise<boolean>{
     if(!session||session!==this.session)return Promise.resolve(false);

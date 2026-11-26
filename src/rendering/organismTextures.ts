@@ -7,6 +7,25 @@ export const organismTextures={
   mother5:require('../../assets/organisms/mother.png'),
   mother6:require('../../assets/organisms/mother-six.png'),
   mother7:require('../../assets/organisms/mother-seven.png'),
+  motherFission3:require('../../assets/organisms/mother-fission-young.png'),
+  motherFission4:require('../../assets/organisms/mother-fission-growing.png'),
+  motherFission5:require('../../assets/organisms/mother-fission.png'),
+  motherFission6:require('../../assets/organisms/mother-fission-six.png'),
+  motherFission7:require('../../assets/organisms/mother-fission-seven.png'),
+  motherElastic3:require('../../assets/organisms/mother-elastic-young.png'),
+  motherElastic4:require('../../assets/organisms/mother-elastic-growing.png'),
+  motherElastic5:require('../../assets/organisms/mother-elastic.png'),
+  motherElastic6:require('../../assets/organisms/mother-elastic-six.png'),
+  motherElastic7:require('../../assets/organisms/mother-elastic-seven.png'),
+  motherSymbiosis3:require('../../assets/organisms/mother-symbiosis-young.png'),
+  motherSymbiosis4:require('../../assets/organisms/mother-symbiosis-growing.png'),
+  motherSymbiosis5:require('../../assets/organisms/mother-symbiosis.png'),
+  motherSymbiosis6:require('../../assets/organisms/mother-symbiosis-six.png'),
+  motherSymbiosis7:require('../../assets/organisms/mother-symbiosis-seven.png'),
+  plate0:require('../../assets/biomes/stillwater-v2.png'),
+  plate1:require('../../assets/biomes/glassgarden-v2.png'),
+  plate2:require('../../assets/biomes/blue-deep-v2.png'),
+  pondLife:require('../../assets/organisms/pond-brightfield-life.png'),
   food:require('../../assets/organisms/desmid.png'),
   cyst:require('../../assets/organisms/toxic-cyst.png'),
   spore:require('../../assets/organisms/pearl-spore.png'),
@@ -66,4 +85,11 @@ export function spriteMetrics(kind:string,form=''):{width:number;uv:{x:number;y:
   const definition=formDefinition(form),valid=definition?.kind===kind?definition:undefined;
   const uv=uvs[kind]??[0.5,0.5];return {width:valid?.rare?90:kind.startsWith('mother')?120:widths[kind]??78,
     uv:valid?{...valid.uv}:{x:uv[0],y:uv[1]}};
+}
+
+// mother_appearance.gd: the first specialization fixes the anatomical branch.
+export function motherTextureKey(capacity:number,mutations:readonly string[]):TextureKey{
+  const branch=mutations.find(id=>['fission','elastic','symbiosis'].includes(id))??'';
+  const suffix=branch?branch[0].toUpperCase()+branch.slice(1):'';
+  return `mother${suffix}${Math.max(3,Math.min(7,Math.trunc(capacity)))}` as TextureKey;
 }

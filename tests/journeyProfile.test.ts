@@ -8,7 +8,9 @@ function complete(session:JourneySession):void{
   const run=session.current;session.begin();run.lesson.stepIndex=4;
   run.harvest.nourishment=run.harvest.spec.food;run.harvest.rescued=20;run.harvest.purified=20;run.harvest.defended=20;
   run.harvest.visited=[0,1,2,3,4,5,6,7];run.harvest.huntersCaptured=20;run.bossDefeated=run.harvest.spec.mode==='boss';
-  run.harvest.checkCompletion(run);session.observeCompletion();assert.equal(run.state,'complete');
+  run.harvest.checkCompletion(run);session.observeCompletion();session.update(1.6);assert.equal(run.state,'complete');
+  for(let i=0;i<600&&!session.progressionReady;i++)session.update(1/60);
+  assert.equal(session.progressionReady,true);
 }
 test('new profile and older partial records load stable defaults, future schemas are protected',()=>{
   const blank=createJourneyProfile();assert.deepEqual(parseJourneyProfile(JSON.parse(JSON.stringify(blank))),blank);

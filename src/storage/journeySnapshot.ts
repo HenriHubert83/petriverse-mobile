@@ -12,8 +12,10 @@ import {Bacterium} from '../ecology/bacterium';
 import {EcologyEnemy} from '../ecology/ecologyEnemy';
 import {captureOrganism,restoreOrganism} from './organismSnapshot';
 import {makeRoute,MAX_TRAITS} from '../campaign/journeyRoute';
-import {capacityForStage} from '../campaign/journeyPlan';
-import type {JourneySpec} from '../campaign/journeyPlan';
+import {capacityForStage,isColonyId,colonyDefinition} from '../campaign/journeyPlan';
+import type {JourneySpec,ColonyId} from '../campaign/journeyPlan';
+import {isHabitatId,habitatChoicesAvailable} from '../campaign/journeyHabitats';
+import type {HabitatId,HabitatHistory} from '../campaign/journeyHabitats';
 import {mutationDefinition} from '../evolution/mutations';
 import {FEATS} from '../campaign/journeyMastery';
 import type {MasteryAward,Feat} from '../campaign/journeyMastery';
@@ -23,7 +25,7 @@ import {validExpeditions} from '../campaign/expeditionCreatures';
 import type {ExpeditionVisit} from '../campaign/expeditionCreatures';
 import {visitorForm} from '../campaign/journeyDiscoveries';
 
-export const JOURNEY_SAVE_VERSION=2;
+export const JOURNEY_SAVE_VERSION=3;
 export class UnsupportedSaveVersionError extends Error {
   constructor(){super('This journey was saved by a newer version of Petriverse. Update the app to continue.');this.name='UnsupportedSaveVersionError';}
 }
@@ -32,6 +34,7 @@ export interface ColonyState {
   lost:boolean[];totalFood:number;totalRescued:number;kills:number;loopsDrawn:number;bestCapture:number;
   rescuedSpecimens:RescuedSpecimen[];masteryAwards:MasteryAward[];seenSpecies:string[];
   nextEnemyId:number;expeditionRoster:ExpeditionVisit[];
+  habitatHistory:HabitatHistory;
 }
 const RUN_NUMBERS=['elapsed','stageElapsed','integrity','biomass','score','kills','totalFood','totalRescued','bestCapture','loopsDrawn',
   'nextEnemyId','guardianSpent','guardianBlockSerial','contactTime','resolvedContacts','captureSerial'] as const;
@@ -78,12 +81,25 @@ function motherMask(value:unknown,capacity:number,integrity:number):boolean[]{
   if(lost.some((missing,i)=>missing&&!active.includes(i))||lost.filter(Boolean).length!==capacity-integrity)throw Error('Invalid saved organelles');
   return lost;
 }
-export function readColony(value:unknown,legacy=false,route:readonly JourneySpec[]=[]):ColonyState{
+function habitatId(value:unknown):HabitatId{if(!isHabitatId(value))throw Error('Invalid habitat choice');return value;}
+function colonyId(value:unknown):ColonyId{if(!isColonyId(value))throw Error('Invalid starting colony');return value;}
+function habitatHistory(value:unknown,route:readonly JourneySpec[],before:number):HabitatHistory{
+  const result:HabitatHistory={};
+  for(const [key,choice] of Object.entries(object(value,'habitat history'))){
+    if(!/^route:(0|[1-9][0-9]*)$/.test(key))throw Error('Invalid habitat history key');
+    const index=Number(key.slice(6)),spec=route[index];
+    if(!spec||index>=before||spec.stage<2||spec.stage%4===3)throw Error('Invalid habitat history encounter');
+    result[key]=habitatId(choice);
+  }
+  return result;
+}
+export function readColony(value:unknown,legacy=false,route:readonly JourneySpec[]=[],legacyHabitats=false,index=route.length):ColonyState{
   const p=object(value,'colony'),capacity=integer(p.capacity,3,7),integrity=integer(p.integrity,0,capacity);
   const counters=numbers(p,COUNTERS,0);for(const n of Object.values(counters))integer(n);
   return {integrity,capacity,biomass:integer(p.biomass,0,30),...counters,mutations:traits(p.mutations),growthRoles:growth(p.growthRoles),
     lost:motherMask(p.lost,capacity,integrity),rescuedSpecimens:specimens(p.rescuedSpecimens),masteryAwards:awards(p.masteryAwards),seenSpecies:unique(array(p.seenSpecies,v=>text(v,100),100)),
-    nextEnemyId:legacy?0:integer(p.nextEnemyId),expeditionRoster:legacy?[]:readExpeditions(p.expeditionRoster,route)};
+    nextEnemyId:legacy?0:integer(p.nextEnemyId),expeditionRoster:legacy?[]:readExpeditions(p.expeditionRoster,route),
+    habitatHistory:legacyHabitats?{}:habitatHistory(p.habitatHistory,route,index)};
 }
 function readExpeditions(value:unknown,route:readonly JourneySpec[]):ExpeditionVisit[]{
   if(!validExpeditions(value,route))throw Error('Invalid expedition roster');
@@ -108,6 +124,7 @@ function captureResult(value:unknown):(HarvestResult&{strain?:number})|undefined
 export function captureEncounter(run:EncounterSimulation){
   return {
     run:{...pick(run,RUN_NUMBERS),state:run.state,creatureContentEnabled:run.creatureContentEnabled,expeditionRoster:clone(run.expeditionRoster),bossDefeated:run.bossDefeated,maxIntegrity:run.maxIntegrity,mutations:[...run.mutations],growthRoles:{...run.growthRoles},
+      colonyId:run.colonyId,habitatContentEnabled:run.habitatContentEnabled,habitatChoice:run.habitatChoice,habitatConfirmed:run.habitatConfirmed,habitatApplied:run.habitatApplied,habitatHistory:{...run.habitatHistory},
       lastContacts:[...run.lastContacts],lastCapture:run.lastCapture?clone(run.lastCapture):null,residuals:clone(run.residuals),rescuedSpecimens:clone(run.rescuedSpecimens),
       masteryAwards:clone(run.masteryAwards),seenSpecies:[...run.seenSpecies],stageBonus:{...run.stageBonus}},
     board:pick(run.board,['anchors','motionTimes','motionHomes','velocities','motionAccumulator']),
@@ -127,32 +144,48 @@ export function captureEncounter(run:EncounterSimulation){
 }
 export type EncounterSnapshot=ReturnType<typeof captureEncounter>;
 export interface JourneySnapshot {
-  format:'petriverse-mobile-journey';version:2;creatureContentEnabled:boolean;seed:number;route:JourneySpec[];index:number;retries:number;finished:boolean;
-  offers:string[];handledCompletion:number;rng:RandomSnapshot;checkpoint:{colony:ColonyState;rng:RandomSnapshot;retryHealing?:boolean};encounter:EncounterSnapshot;
+  format:'petriverse-mobile-journey';version:3;creatureContentEnabled:boolean;habitatContentEnabled:boolean;colonyId:ColonyId;seed:number;route:JourneySpec[];index:number;retries:number;finished:boolean;
+  offers:string[];handledCompletion:number;rng:RandomSnapshot;checkpoint:{colony:ColonyState;rng:RandomSnapshot;retryHealing?:boolean;habitatChoice:HabitatId;habitatConfirmed:boolean};encounter:EncounterSnapshot;
 }
 export function readJourneyHeader(value:unknown){
   const p=object(value,'journey');
   if(p.format!=='petriverse-mobile-journey')throw Error('Unrecognized journey save');
   const version=integer(p.version,1);if(version>JOURNEY_SAVE_VERSION)throw new UnsupportedSaveVersionError();
   const legacy=version===1,creatureContentEnabled=legacy?false:bool(p.creatureContentEnabled);
+  const legacyHabitats=version<3,habitatContentEnabled=legacyHabitats?false:bool(p.habitatContentEnabled),startingColony=legacyHabitats?'wanderer':colonyId(p.colonyId);
+  if(habitatContentEnabled&&!creatureContentEnabled)throw Error('Habitat visitors require creature content');
   const seed=integer(p.seed,0,0xffffffff),route=makeRoute(seed);
   // This schema identifies the exact route generator. Future route changes require migration.
   if(JSON.stringify(p.route)!==JSON.stringify(route))throw Error('Invalid or mismatched saved journey route');
   const index=integer(p.index,0,route.length-1),retries=integer(p.retries),finished=bool(p.finished),offers=traits(p.offers),handledCompletion=integer(p.handledCompletion,-1,index);
-  const checkpoint=object(p.checkpoint,'retry checkpoint'),colony=readColony(checkpoint.colony,legacy,route),rng=SeededRandom.restore(p.rng),retryRng=SeededRandom.restore(checkpoint.rng);
+  const checkpoint=object(p.checkpoint,'retry checkpoint'),colony=readColony(checkpoint.colony,legacy,route,legacyHabitats,index),rng=SeededRandom.restore(p.rng),retryRng=SeededRandom.restore(checkpoint.rng);
+  const choice=legacyHabitats?'bloom':habitatId(checkpoint.habitatChoice),confirmed=legacyHabitats?true:bool(checkpoint.habitatConfirmed);
+  if((!habitatContentEnabled&&(choice!=='bloom'||Object.keys(colony.habitatHistory).length))||(choice==='refuge'&&(!confirmed||route[index].stage<2||route[index].stage%4===3)))throw Error('Invalid habitat retry state');
+  const startingTrait=colonyDefinition(startingColony).trait;if(startingTrait&&!colony.mutations.includes(startingTrait))throw Error('Missing starting colony trait');
   if(!creatureContentEnabled&&colony.expeditionRoster.length)throw Error('Unexpected legacy expedition');
   if(colony.capacity>capacityForStage(route[index].stage))throw Error('Invalid retry colony capacity');
   if(finished&&index!==route.length-1)throw Error('Invalid completed journey');
   const retryHealing=checkpoint.retryHealing===undefined?undefined:bool(checkpoint.retryHealing);
-  return {seed,route,index,retries,finished,offers,handledCompletion,colony,rng,retryRng,retryHealing,encounter:p.encounter,legacy,creatureContentEnabled};
+  return {seed,route,index,retries,finished,offers,handledCompletion,colony,rng,retryRng,retryHealing,encounter:p.encounter,legacy,creatureContentEnabled,
+    legacyHabitats,habitatContentEnabled,colonyId:startingColony,habitatChoice:choice,habitatConfirmed:confirmed};
 }
-export function restoreEncounter(value:unknown,spec:JourneySpec,seed:number,index:number,rng:SeededRandom,pauseOnResume=true,legacy=false):EncounterSimulation{
+export function restoreEncounter(value:unknown,spec:JourneySpec,seed:number,index:number,rng:SeededRandom,pauseOnResume=true,legacy=false,legacyHabitats=false):EncounterSimulation{
   const p=object(value,'encounter'),r=object(p.run,'encounter state'),capacity=capacityForStage(spec.stage);
   if(integer(r.maxIntegrity,3,7)!==capacity)throw Error('Invalid saved Mother capacity');
   const state=text(r.state,20);if(!STATE_VALUES.includes(state))throw Error('Invalid saved encounter state');
   const run=new EncounterSimulation(spec,{seed,encounterIndex:index,maxIntegrity:capacity,integrity:integer(r.integrity,0,capacity),
     biomass:integer(r.biomass,0,30),mutations:traits(r.mutations),growthRoles:growth(r.growthRoles),content:true,hydrate:true,rng,
-    creatureContentEnabled:legacy?false:bool(r.creatureContentEnabled),expeditionRoster:legacy?[]:readExpeditions(r.expeditionRoster,makeRoute(seed))});
+    creatureContentEnabled:legacy?false:bool(r.creatureContentEnabled),expeditionRoster:legacy?[]:readExpeditions(r.expeditionRoster,makeRoute(seed)),
+    habitatContentEnabled:legacyHabitats?false:bool(r.habitatContentEnabled),colonyId:legacyHabitats?'wanderer':colonyId(r.colonyId),
+    habitatHistory:legacyHabitats?{}:habitatHistory(r.habitatHistory,makeRoute(seed),index+1)});
+  run.habitatChoice=legacyHabitats?'bloom':habitatId(r.habitatChoice);run.habitatConfirmed=legacyHabitats?true:bool(r.habitatConfirmed);run.habitatApplied=legacyHabitats?true:bool(r.habitatApplied);
+  if((run.habitatApplied&&!run.habitatConfirmed)||(state==='brief'&&run.habitatContentEnabled&&run.habitatApplied)||
+    (state!=='brief'&&run.habitatContentEnabled&&!run.habitatApplied)||
+    (!run.habitatContentEnabled&&(run.habitatChoice!=='bloom'||Object.keys(run.habitatHistory).length))||
+    (run.habitatChoice==='refuge'&&(!run.habitatConfirmed||!habitatChoicesAvailable(run))))throw Error('Invalid saved habitat state');
+  const currentHabitat=run.habitatHistory[run.encounterKey];
+  if(habitatChoicesAvailable(run)&&run.habitatApplied?currentHabitat!==run.habitatChoice:currentHabitat!==undefined)throw Error('Inconsistent habitat history');
+  const startingTrait=colonyDefinition(run.colonyId).trait;if(startingTrait&&!run.mutations.includes(startingTrait))throw Error('Missing starting colony trait');
   if(!run.creatureContentEnabled&&run.expeditionRoster.length)throw Error('Unexpected legacy expedition');
   if(run.expeditionRoster.some(v=>v.spawned&&v.encounter>index))throw Error('Premature expedition discovery');
   Object.assign(run,numbers(r,RUN_NUMBERS,0));
@@ -179,6 +212,7 @@ export function restoreEncounter(value:unknown,spec:JourneySpec,seed:number,inde
   const h=object(p.harvest,'harvest');Object.assign(run.harvest,numbers(h,HARVEST_NUMBERS));
   run.harvest.visitorAt=legacy?-1:number(h.visitorAt,-1,44);
   run.harvest.visitorSpawned=legacy?false:bool(h.visitorSpawned);
+  if(run.habitatContentEnabled&&run.habitatApplied&&run.habitatChoice==='refuge'&&run.harvest.visitorAt!==36)throw Error('Missing sheltered visitor');
   if((run.harvest.visitorAt!==-1&&run.harvest.visitorAt<36)||
     (!run.creatureContentEnabled&&(run.harvest.visitorAt!==-1||run.harvest.visitorSpawned))||
     (run.harvest.visitorSpawned&&(run.harvest.visitorAt<0||run.stageElapsed<run.harvest.visitorAt)))throw Error('Invalid saved visitor timing');

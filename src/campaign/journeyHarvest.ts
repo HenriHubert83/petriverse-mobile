@@ -18,6 +18,7 @@ import {BLOOM_CYCLE} from './encounterRhythm';
 import {HabitatEvents} from './habitatEvents';
 import {beginDiscoveries,stepDiscoveries} from './journeyDiscoveries';
 import {formDefinition} from '../content/creatureCatalogue';
+import {trimHabitatBloom} from './journeyHabitats';
 
 export interface EncounterSpec {
   stage:number;mode:'feed'|'rescue'|'purify'|'defend'|'sectors'|'boss';
@@ -58,6 +59,7 @@ export class JourneyHarvest {
     run.discover('food');run.discover('cyst');this.ecology.begin(run);beginDiscoveries(run);this.events.begin(run);
   }
   spawnBloom(run:EncounterSimulation,sector:number):void{
+    const first=run.enemies.length;
     const next=(sector+1)%8,anchors=run.board.anchors;
     const a=anchors[sector],b=anchors[8+sector],c=anchors[8+next],d=anchors[next];
     const phase=run.rng.float(0,2*Math.PI),rich=scale(add(add(a,c),d),1/3);
@@ -77,6 +79,7 @@ export class JourneyHarvest {
       }
       run.enemies.push(body);if(run.creatureContentEnabled)run.assignForm(body);
     }
+    if(run.habitatApplied)trimHabitatBloom(run,run.enemies.slice(first));
   }
   spawnSpore(run:EncounterSimulation,area=-1):void{
     const sector=area<0?(this.rotation+this.sporesSpawned*3+1)%8:area,a=run.board.anchors;

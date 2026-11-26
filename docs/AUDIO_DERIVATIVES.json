@@ -1,0 +1,168 @@
+{
+  "source": "HenriHubert83/petriverse",
+  "commit": "be96d3e0641571cc37255fb8701ea83e20c28aee",
+  "conversion": "ffmpeg AAC 128 kbps, 44.1 kHz, M4A faststart. Audio content unchanged.",
+  "files": [
+    {
+      "source": "assets/audio/absorb.ogg",
+      "sourceGitBlob": "39c31ee62dd8068ca06e0e71f8a2de7c4b50bda5",
+      "destination": "assets/audio/mobile/absorb.m4a",
+      "sha256": "60561c7d25909158c01a36f3ee58a75eedc4c7e992f87e843ee68ed93b972bd5",
+      "bytes": 40421,
+      "durationSeconds": 2.406009
+    },
+    {
+      "source": "assets/audio/close.ogg",
+      "sourceGitBlob": "9d06901da4af00c5193361db5801cf12da5fd82e",
+      "destination": "assets/audio/mobile/close.m4a",
+      "sha256": "e3efa09512c53f46cb24dfd5d7897b43af63b8f6b55fd2aafc05eeb0b2fc728d",
+      "bytes": 25376,
+      "durationSeconds": 1.47
+    },
+    {
+      "source": "assets/audio/connect.ogg",
+      "sourceGitBlob": "db0cde4f44422dd33790686a9fb14356bfb7f8e8",
+      "destination": "assets/audio/mobile/connect.m4a",
+      "sha256": "d4ba660b70902a7fe7fa91bdcb81313343d2575549f69352a4ff2ba57ca65c81",
+      "bytes": 11521,
+      "durationSeconds": 0.673379
+    },
+    {
+      "source": "assets/audio/current-layer.ogg",
+      "sourceGitBlob": "0571be3ab5cdc092ce8f9ced1f115b7e88415ab0",
+      "destination": "assets/audio/mobile/current-layer.m4a",
+      "sha256": "225b3a009be25b9bfcc36136b5609c7d54ee7b2c177a95f7cd74bd96eaa2add9",
+      "bytes": 419791,
+      "durationSeconds": 24.0
+    },
+    {
+      "source": "assets/audio/evolve.ogg",
+      "sourceGitBlob": "b86dc42a6b518b6d1ed852b713bbdec61be2ece8",
+      "destination": "assets/audio/mobile/evolve.m4a",
+      "sha256": "ff7fe23ae6f3c73903016d36ef2c14f8ed4ba49921617861f1de1d762dfce6cf",
+      "bytes": 62237,
+      "durationSeconds": 3.796463
+    },
+    {
+      "source": "assets/audio/fracture.ogg",
+      "sourceGitBlob": "2d4864cc46d63f5dcee9ceb7039139dcaf077942",
+      "destination": "assets/audio/mobile/fracture.m4a",
+      "sha256": "616a0a5713dca0b8e16ece2f37c427b83bcbd9bbf5380b8c24aa9c5e6ae9c337",
+      "bytes": 18962,
+      "durationSeconds": 1.021678
+    },
+    {
+      "source": "assets/audio/heartbeat.ogg",
+      "sourceGitBlob": "78f737cb83f893a1277933d9dfad2e21a8bcddb7",
+      "destination": "assets/audio/mobile/heartbeat.m4a",
+      "sha256": "2845b3ac9b599af90552fdd8b954cb33c63e0218d18249ed443f342d0fd806e3",
+      "bytes": 11735,
+      "durationSeconds": 1.1
+    },
+    {
+      "source": "assets/audio/injury.ogg",
+      "sourceGitBlob": "9484e7ce2666310115f4652f8925587b1a3f283e",
+      "destination": "assets/audio/mobile/injury.m4a",
+      "sha256": "46abf5e881556bd104f3c42545bae546be82c318a458fb6ea14fc29f0c5aa36f",
+      "bytes": 30304,
+      "durationSeconds": 1.750998
+    },
+    {
+      "source": "assets/audio/loss.ogg",
+      "sourceGitBlob": "4881fcafdf20eeed0ede9b073b022cac0c5b15e2",
+      "destination": "assets/audio/mobile/loss.m4a",
+      "sha256": "9dac61f552abde69af0906b9317ca72ea41ae5e6aba4f787e6cf5f15aa17266e",
+      "bytes": 68400,
+      "durationSeconds": 4.0
+    },
+    {
+      "source": "assets/audio/mastery.ogg",
+      "sourceGitBlob": "0937d18ae50327ab57f7a77e40510aeeb9976038",
+      "destination": "assets/audio/mobile/mastery.m4a",
+      "sha256": "8f27ed7a88ed76ef22db3c3497ce62d5a53fe08008a35abe96d03617961bd0ee",
+      "bytes": 61508,
+      "durationSeconds": 3.776145
+    },
+    {
+      "source": "assets/audio/petriverse-blue-deep.ogg",
+      "sourceGitBlob": "222d89c3a066fff5d671b75f23733e8bb7ff560d",
+      "destination": "assets/audio/mobile/petriverse-blue-deep.m4a",
+      "sha256": "00e182a3b89034cafd9922f387fd01d10e4e579d42b8251ea306953327d938e6",
+      "bytes": 3010277,
+      "durationSeconds": 182.8
+    },
+    {
+      "source": "assets/audio/petriverse-glassgarden.ogg",
+      "sourceGitBlob": "55eb9a7b66292e690dfa23d4e60b7884969f1e92",
+      "destination": "assets/audio/mobile/petriverse-glassgarden.m4a",
+      "sha256": "15758655b94595023f482b550ebe1bcea85fa11baefc19f43c6d063d484294fc",
+      "bytes": 2304856,
+      "durationSeconds": 139.2
+    },
+    {
+      "source": "assets/audio/petriverse-stillwater.ogg",
+      "sourceGitBlob": "61cacab725fa419d6251699ad2e16eaa93abab13",
+      "destination": "assets/audio/mobile/petriverse-stillwater.m4a",
+      "sha256": "dd2cc4c391f33d5c7260f885c2ea598f2c3c3049cbb41fdff4c5b476c8b3af35",
+      "bytes": 3107293,
+      "durationSeconds": 189.2
+    },
+    {
+      "source": "assets/audio/pond.ogg",
+      "sourceGitBlob": "dcb40a44d18e2e3c491411c4035e5f2e05b2fda2",
+      "destination": "assets/audio/mobile/pond.m4a",
+      "sha256": "82f7751107e022764659aa85810291e077a2fd8fe72cfea46786c526789a34f2",
+      "bytes": 395963,
+      "durationSeconds": 24.0
+    },
+    {
+      "source": "assets/audio/swell.ogg",
+      "sourceGitBlob": "499f0343d52dec91a9a14a4dd9e95a3f5650a7fa",
+      "destination": "assets/audio/mobile/swell.m4a",
+      "sha256": "63a5e9e782e93ac820c3114e376ed6467ede8c69f341c37d7d0296b6037b9236",
+      "bytes": 35730,
+      "durationSeconds": 2.2
+    },
+    {
+      "source": "assets/audio/ui_hover.ogg",
+      "sourceGitBlob": "5f0c7ea3380ea2390821cfac31e65177383bf758",
+      "destination": "assets/audio/mobile/ui_hover.m4a",
+      "sha256": "8cd1d856d5227a5f8e93b36dade66d57e9f86fa08db78d6228ff3e1279810a10",
+      "bytes": 3060,
+      "durationSeconds": 0.12
+    },
+    {
+      "source": "assets/audio/ui_press.ogg",
+      "sourceGitBlob": "bb974615b9614e05d501baf42ce7e6700a731c2a",
+      "destination": "assets/audio/mobile/ui_press.m4a",
+      "sha256": "ff27ccc2975ea3c0b0f3e5572325a5d43c76b0c9ba4c24abee0db53725a0b68d",
+      "bytes": 3991,
+      "durationSeconds": 0.21
+    },
+    {
+      "source": "assets/audio/victory.ogg",
+      "sourceGitBlob": "504b31c0a0295c1d71b1eed5e1bd7bd80318db13",
+      "destination": "assets/audio/mobile/victory.m4a",
+      "sha256": "6ef90338fb9390c7d7bdd87821e1ca9c440bf3746a8d2a64bd1bb30fdb8014aa",
+      "bytes": 99528,
+      "durationSeconds": 6.000998
+    },
+    {
+      "source": "assets/audio/warning.ogg",
+      "sourceGitBlob": "b489e418217633182c89a2896ee10d2afb7297d3",
+      "destination": "assets/audio/mobile/warning.m4a",
+      "sha256": "8c568fa5671635d02034058967b80070e55c34027feee3e3b05953bb37b01636",
+      "bytes": 27040,
+      "durationSeconds": 1.591995
+    },
+    {
+      "source": "assets/audio/connect.ogg",
+      "sourceGitBlob": "db0cde4f44422dd33790686a9fb14356bfb7f8e8",
+      "destination": "assets/audio/mobile/connect-octave.m4a",
+      "sha256": "ed3a639698c2a591d10f28f5d9625f9e963987dab55a42c840664d87bb2ff8eb",
+      "bytes": 6385,
+      "durationSeconds": 0.337007,
+      "conversion": "Same AAC settings with asetrate=88200,aresample=44100 to reproduce original notes above the native 2x playback rate limit."
+    }
+  ]
+}

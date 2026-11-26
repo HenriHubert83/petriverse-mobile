@@ -1,0 +1,113 @@
+// Source microscope_field.gdshader. Explicit sample taps approximate mip LOD. See CREDITS.md.
+import {organicMotion} from './organicMotion';
+import {pondOptics} from './pondOptics';
+import {waterInteractionShader} from './waterInteraction';
+export const microscopeFieldShader=`
+${organicMotion}
+${pondOptics}
+${waterInteractionShader}
+uniform float clock;
+uniform float motion;
+uniform float detail;
+uniform float dish;
+uniform float3 water_grade;
+uniform float3 water_base;
+uniform float plate_turn;
+uniform float plate_scale;
+uniform float2 plate_offset;
+uniform float2 light_direction;
+uniform float sediment;
+uniform float4 impulses[4]; // world x/y, age, strength
+uniform shader pondPlate;
+uniform float2 plateSize;
+float3 plate_sample(float2 uv,float reach){
+ float2 p=uv*plateSize;
+ return (float3(pondPlate.eval(p).rgb)*0.5+float3(pondPlate.eval(p+float2(reach,reach)).rgb)*0.25+float3(pondPlate.eval(p-float2(reach,reach)).rgb)*0.25);
+}
+
+float hash(float2 p) {
+	return fract(sin(dot(p, float2(127.1, 311.7))) * 43758.5453);
+}
+
+half4 main(float2 px) {
+	float2 q = (px - float2(640.0, 450.0)) / 392.0;
+	float r = length(q);
+	// Settled material is almost stationary. Independent suspended organisms
+	// supply the living motion; only slight optical refraction moves this plate.
+	float2 base_uv = q*0.45+float2(0.5);
+	base_uv = float2x2(float2(cos(plate_turn),sin(plate_turn)),float2(-sin(plate_turn),cos(plate_turn))) * (base_uv-float2(0.5)) * plate_scale + float2(0.5) + plate_offset;
+	float t = clock * motion;
+	float2 flow = float2(sin(t * 0.024) * 0.0015, (cos(t * 0.021 + 1.3) - cos(1.3)) * 0.0012);
+	float2 shear = float2(sin(base_uv.y * 7.0 + t * 0.055), cos(base_uv.x * 8.0 - t * 0.048)) * 0.0012;
+	float2 uv = base_uv + (flow + shear * (detail > 0.5 ? 1.0 : 0.35)) * motion;
+	// Texture coordinates backtrace; particles move forward through this field.
+	uv += (water_displacement(px)-transported_water(px)*2.0)/float2(1176.0,784.0)*0.48*motion;
+	// Captures displace the water optically. These are soft travelling pressure
+	// fronts in the sediment, never luminous rings drawn over the organisms.
+	for (int i=0;i<4;i++) {
+		if (impulses[i].w>0.001) {
+			float2 delta = px-impulses[i].xy;
+			float distance = length(delta);
+			float front = (distance-18.0-impulses[i].z*34.0)/22.0;
+			float pressure = exp(-front*front)*sin(front*2.2);
+			uv += delta/max(distance,1.0)*pressure*0.0032*impulses[i].w*motion;
+		}
+	}
+	// A shallow focal offset keeps sediment behind the playable tissue.
+	float3 plate = plate_sample(uv, exp2(1.2));
+	if (detail > 0.5) {
+		// Compress local contrast rather than burying dark outlines in black.
+		float3 soft = plate_sample(uv + float2(0.0018,0.0012), exp2(3.3)) * 0.5;
+		soft += plate_sample(uv - float2(0.0018,0.0012), exp2(3.3)) * 0.5;
+		plate = mix(soft,plate,0.52);
+	}
+	if (detail > 1.5) {
+		// The deepest focal plane is optional; interactive tissue is always full detail.
+		float2 deep_uv = float2(0.81 - base_uv.y * 0.62, 0.16 + base_uv.x * 0.62);
+		deep_uv += float2(-sin(t * 0.019) * 0.002, sin(t * 0.023 + 0.7) * 0.0016) * motion;
+		float3 deep = plate_sample(deep_uv, exp2(4.0)) * 0.34;
+		deep += plate_sample(deep_uv + float2(0.018, 0.013), exp2(4.0)) * 0.33;
+		deep += plate_sample(deep_uv - float2(0.018, 0.013), exp2(4.0)) * 0.33;
+		plate = mix(deep, plate, 0.90);
+	}
+	float luma = dot(plate, float3(0.2126, 0.7152, 0.0722));
+	// Preserve the real specimen optics, graded into the game's dark blue water.
+	float3 optical = mix(float3(luma), plate, 0.86);
+	float plate_exposure = dish>1.5 ? 1.5 : 1.0;
+	// Lift the water's middle values substantially. A dark floor underneath
+	// bright photographic tissue makes the living cells read as separate cutouts.
+	float3 water = water_base*0.88+float3(0.040,0.055,0.065)+optical*float3(0.24,0.27,0.29)*sediment*plate_exposure;
+	water = max(water, float3(0.018, 0.035, 0.052));
+	// Slightly quieter behind the focal mother, with natural optical falloff.
+	water = mix(water, water_base*1.08+float3(0.040,0.055,0.065), (1.0 - smoothstep(0.08, 0.30, r)) * 0.24);
+	water *= 1.0 - smoothstep(0.68, 1.04, r) * 0.21;
+	water *= pond_illumination(px,t,light_direction);
+	float lens_edge = exp(-pow((r - 0.997) * 210.0, 2.0));
+	float reflection = max(0.0, dot(normalize(q + float2(0.0001)), normalize(light_direction)));
+	water += float3(0.06, 0.10, 0.12) * lens_edge * reflection;
+	if (dish > 1.5) { water *= float3(0.90,0.92,1.0); }
+	water *= water_grade;
+	float3 outside = float3(0.011, 0.022, 0.028);
+	// Eyepiece: water light spills a little into the barrel, then a machined
+	// retaining ring catches the same light as the specimens. Everything is
+	// flat again by r = 1.14 so the reduced comfort layout shows no seam.
+	float2 around = normalize(q + float2(0.0001));
+	float2 light = normalize(light_direction);
+	float facing = dot(around, light);
+	float3 spill = water_grade * water_base * 1.2 * exp(-max(r - 1.0, 0.0) * 30.0) * 0.55;
+	float3 barrel = outside + spill * (1.0 - smoothstep(1.06, 1.14, r));
+	float ring = smoothstep(1.014, 1.019, r) * (1.0 - smoothstep(1.040, 1.046, r));
+	float striation = sin(r * 2600.0) * 0.5 + 0.5;
+	float3 metal = float3(0.034, 0.050, 0.056) + float3(0.020, 0.026, 0.028) * striation * 0.35;
+	metal += float3(0.26, 0.31, 0.32) * pow(max(facing, 0.0), 5.0) * (0.55 + 0.45 * striation);
+	metal += float3(0.05, 0.065, 0.07) * pow(max(-facing, 0.0), 10.0);
+	float chamfer = exp(-pow((r - 1.0185) * 900.0, 2.0)) * (0.35 + 0.65 * max(facing, 0.0));
+	float gap = exp(-pow((r - 1.047) * 700.0, 2.0));
+	barrel = mix(barrel, metal, ring);
+	barrel += float3(0.30, 0.37, 0.38) * chamfer;
+	barrel *= 1.0 - gap * 0.6;
+	float3 color = mix(water, barrel, smoothstep(1.003, 1.016, r));
+	color += (hash(floor(px * 1.4)) - 0.5) * 0.002;
+	return half4(color,1.0);
+}
+`;

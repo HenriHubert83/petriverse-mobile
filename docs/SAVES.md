@@ -13,7 +13,7 @@ This increment ports the currently represented part of the pinned original `jour
 
 ## Storage and runtime boundary
 
-`JourneySession.snapshot()` emits schema version 2. `JourneySession.restore()` validates it, restores the live RNG shared with the encounter and the separate retry RNG, reconstructs known organism classes and reconnects clot/cell references. Save data never selects an arbitrary constructor or executable script. Active restores pause by default; CPU comparison fixtures can explicitly request active restoration.
+`JourneySession.snapshot()` emits schema version 3. `JourneySession.restore()` validates it, restores the live RNG shared with the encounter and the separate retry RNG, reconstructs known organism classes and reconnects clot/cell references. Save data never selects an arbitrary constructor or executable script. Active restores pause by default; CPU comparison fixtures can explicitly request active restoration.
 
 The snapshot preserves the current mobile route, seed, index, completion bookkeeping, evolution offers and retry colony, plus board/cell/organism state, Mother damage, recovery clots, tutorial, harvest/ecology/events, phages, amoeba returns, nudge cooldown, residual membranes and fluid history. Routes are validated against the current generator; changing it requires a schema/migration decision. Newer schemas are kept untouched and reported as unsupported.
 
@@ -25,7 +25,7 @@ Entry reconstruction uses the original entry colony and RNG, without invoking th
 
 `SaveCoordinator` serializes user-level writes and replacement. It captures data before queuing, rejects stale callbacks from a replaced session, and exposes a new journey only after its initial save succeeds. Profile preparation and writes have independent errors and cannot block a valid journey save. Profile observation deduplicates accomplishments and retains unsaved in-memory records after a transient profile write failure. Ordinary base-form spores legitimately have an empty form name; this does not invalidate their rescue records.
 
-Profile version 1 retains discovered/introduced/offered species, rescued resident records, cleared encounters, colony traits, mastery memories, completed seeds, victories, best score and completed-dish unlock eligibility. Partial older JSON profiles can receive defaults. This is not migration of Godot `.cfg` files, and it does not implement home-pond interactions, journal/cinema or selection/gameplay for additional colonies.
+Profile version 1 retains discovered/introduced/offered species, rescued resident records, cleared encounters, colony traits, mastery memories, completed seeds, victories, best score and completed-dish unlock eligibility. Partial older JSON profiles can receive defaults. Home-pond naming and welcome actions, journal discovery offers/introductions, and colony eligibility use these records. Profile-only edits share the coordinator write queue and retain their latest in-memory value after a failed write. This is not migration of Godot `.cfg` files.
 
 ## Creature-content migration
 
@@ -34,6 +34,14 @@ Schema 2 persists creature-content enablement, the planned expedition roster and
 Schema 1 migrates explicitly with new creature scheduling disabled for the entire existing journey. Current bodies, RNG, discoveries and progress remain intact, including later retries and encounters. Start New Journey to enable the expanded ecosystem. The route generator and profile schema remain unchanged. Older app builds reject schema 2 rather than silently dropping the new state.
 
 Moonlace food uses negative bloom identifiers, now accepted within bounded integer limits. Organism restoration checks that forms match species and that helper-visitor flags belong only to the three helper spore forms. Global organism IDs in new journeys prevent rescue-token collisions between authored and generated visits sharing a stage.
+
+## Habitat and colony migration
+
+Schema 3 adds the selected starting colony, habitat enablement, choice/confirmation/application and encounter history. Retry and encounter recovery retain an already chosen habitat. Refuge trimming runs once, preserves both cysts, reduces blooms to four food and guarantees the promised helper at 36 seconds. Old schema-1/2 journeys migrate with habitat effects disabled for that entire journey; their prior ecology and random stream remain unchanged. A real schema-2 fixture from `fbcc199` verifies continuation across the visitor threshold.
+
+Preferences have their own validated, backed-up local repository. Changes apply immediately, writes remain ordered, and failed writes retain active values for Retry. Newer preferences remain protected. Settings include music/effects volume, mute, subtitles, reduced motion, contrast, larger text, assisted closure, deliberate capture, tap controls and quality.
+
+Journal, pond, settings and cinema pause an active journey. Discovery demonstrations and public experiments use isolated simulations and cannot mutate journey rewards or saves. Watching or skipping an introduction marks it introduced; Later leaves it accessible in the Journal. Resident names are limited to 24 Unicode code points.
 
 ## Automated verification
 
@@ -65,3 +73,12 @@ Report the device/OS, step and any visible error. Backup fault injection is cove
 - In The nursery, allow roughly 36 to 44 active seconds for Moonlace. It releases two food particles after another six seconds. Pause/save and fully reopen during this visit.
 - Capture a visitor or expedition spore, reopen, and check that the rescue count and profile record remain. Test a retry of a generated encounter; its chosen expedition should reappear once.
 - Check each new visual at Fit and zoomed views: the bright nucleus remains the capture point and save notices do not move the dish.
+
+## Remaining combined-device check (deferred by Henri this round)
+
+- Continue an older save, then use a new journey to check habitats and unlocked colonies.
+- Open Journal, watch/skip/replay a discovery, background during narration, and return to the paused journey.
+- Visit the pond, select/name a resident, wait for its welcome, reopen the app and verify the name and records.
+- Change audio, larger text, contrast, motion and quality. Compare drag and tap controls, assisted closure and held-loop slowdown at Fit and zoom.
+- Complete a journey and inspect the final live pond; open all three Experiments and confirm the saved journey is unchanged.
+- Listen for music crossfades, narration ducking, capture feedback and muted output. Verify native shader registration, readability, sustained frame time, memory and battery behavior on iOS and Android.

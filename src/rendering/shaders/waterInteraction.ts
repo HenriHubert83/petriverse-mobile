@@ -1,6 +1,7 @@
 // SkSL port of prototype/shaders/water_interaction.gdshaderinc.
 // Child fluidMap must expose raw, linearly sampled RG displacement channels,
-// not a color-managed/premultiplied RGBA texture. Native upload is pending.
+// not a color-managed/premultiplied RGBA texture. EncounterView supplies an
+// untagged opaque float RGBA image, with alpha fixed at one.
 export const waterInteractionShader=`
 uniform float4 currents[4];
 uniform float4 strokes[6];
