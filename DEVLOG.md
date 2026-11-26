@@ -169,3 +169,9 @@
 - Added compiler-based regression checks across every app TSX file importing Skia. The new check failed on exactly the three original locations before the fix and passes afterward. Fixtures distinguish meaningful same-line whitespace from discarded multiline indentation and valid text properties/native labels.
 - Independently reproduced the exact error with the installed Skia 2.14.0 reconciler and CanvasKit: a Group containing Path, a literal space and Points produced zero root children and zero visible pixels; removing the space produced two drawing children and 404 visible pixels without errors. This is a headless renderer check, not a phone screenshot.
 - All **322 test groups passed**, with zero failures/skips/cancellations. TypeScript, whitespace checks and both iOS/Android production Hermes exports passed. The corrected build still needs reloading and confirmation on the phone. Delivery remains on phase-02-foundation; main is not merged.
+
+## 2026-11-26 | Phone confirmation and main-menu button grid
+
+- Henri confirmed the blank-dish correction works on his phone and began further playtesting. This confirms that specific rendering fix, not a complete journey or release validation.
+- Changed Field journal, Home pond, Experiments and Settings to two explicit, evenly spaced rows. Buttons share the available width equally and stretch within each row, aligning both columns with the full-width menu buttons above. Labels remain centered when wrapping.
+- TypeScript and whitespace checks passed. This is a menu layout change; no game or save behavior changed. Updated layout awaits phone review after pulling the development branch.

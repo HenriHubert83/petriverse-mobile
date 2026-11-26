@@ -36,9 +36,9 @@ const makeCoordinator=(colony:()=>ColonyId)=>new SaveCoordinator<JourneySession,
   },
 });
 
-function MenuButton({label,onPress,quiet=false,disabled=false}:{label:string;onPress:()=>void;quiet?:boolean;disabled?:boolean}){
+function MenuButton({label,onPress,quiet=false,disabled=false,fill=false}:{label:string;onPress:()=>void;quiet?:boolean;disabled?:boolean;fill?:boolean}){
   return <Pressable accessibilityRole="button" accessibilityState={{disabled}} disabled={disabled} onPress={onPress}
-    style={({pressed})=>[styles.button,quiet&&styles.quiet,(pressed||disabled)&&styles.dim]}>
+    style={({pressed})=>[styles.button,fill&&styles.menuLinkButton,quiet&&styles.quiet,(pressed||disabled)&&styles.dim]}>
     <Text style={styles.buttonText}>{label}</Text>
   </Pressable>;
 }
@@ -164,8 +164,16 @@ export function JourneyApp(){
           <MenuButton label="Retry profile" onPress={retryProfile} disabled={coordinator.busy} quiet/>
         </>}
         <MenuButton label="How to play & credits" onPress={()=>setHelp(true)} quiet/>
-        <View style={styles.menuLinks}><MenuButton label="Field journal" onPress={()=>openPanel('journal')} quiet/><MenuButton label="Home pond" onPress={()=>openPanel('pond')} quiet/>
-          <MenuButton label="Experiments" onPress={()=>openPanel('experiments')} quiet/><MenuButton label="Settings" onPress={()=>openPanel('settings')} quiet/></View>
+        <View style={styles.menuLinks}>
+          <View style={styles.menuLinkRow}>
+            <MenuButton label="Field journal" onPress={()=>openPanel('journal')} quiet fill/>
+            <MenuButton label="Home pond" onPress={()=>openPanel('pond')} quiet fill/>
+          </View>
+          <View style={styles.menuLinkRow}>
+            <MenuButton label="Experiments" onPress={()=>openPanel('experiments')} quiet fill/>
+            <MenuButton label="Settings" onPress={()=>openPanel('settings')} quiet fill/>
+          </View>
+        </View>
         {coordinator.profile.bestScore>0&&<Text style={styles.detail}>Best score {coordinator.profile.bestScore} · {coordinator.profile.victories} journeys completed</Text>}
         {coordinator.saving&&<Text accessibilityLiveRegion="polite" style={styles.detail}>Saving…</Text>}
       </>}
@@ -175,12 +183,12 @@ export function JourneyApp(){
 
 const styles=StyleSheet.create({
   root:{flex:1,backgroundColor:'#06171c'},loading:{flex:1,alignItems:'center',justifyContent:'center',gap:16,backgroundColor:'#06171c'},
-  menuLinks:{flexDirection:'row',flexWrap:'wrap',gap:8},colonyPage:{padding:24,gap:16,width:'100%',maxWidth:700,alignSelf:'center'},colony:{gap:8,padding:18,backgroundColor:'#0c242b',borderWidth:1,borderColor:'#2c5055',borderRadius:14},
+  menuLinks:{gap:8},menuLinkRow:{flex:1,flexDirection:'row',gap:8},menuLinkButton:{flex:1},colonyPage:{padding:24,gap:16,width:'100%',maxWidth:700,alignSelf:'center'},colony:{gap:8,padding:18,backgroundColor:'#0c242b',borderWidth:1,borderColor:'#2c5055',borderRadius:14},
   page:{flexGrow:1,padding:24,flexDirection:'row',flexWrap:'wrap',alignItems:'center',justifyContent:'center',gap:28},
   introduction:{flexGrow:1,flexBasis:260,maxWidth:440,alignItems:'center',gap:10},menu:{flexGrow:1,flexBasis:300,maxWidth:520,gap:10,padding:20,backgroundColor:'#0c242b',borderColor:'#2c5055',borderWidth:1,borderRadius:18},
   eyebrow:{fontSize:10,color:'#9ac8c2',letterSpacing:2},brand:{color:'#e1eee4',fontSize:29,fontWeight:'600',letterSpacing:5},tagline:{color:'#a5c1be',fontSize:15},title:{color:'#e3eee4',fontSize:22,fontWeight:'500'},
   body:{color:'#c0d3ce',fontSize:13,lineHeight:20},detail:{color:'#91adae',fontSize:11,lineHeight:16},credits:{color:'#87a5a5',fontSize:10,lineHeight:15,textAlign:'center'},
-  button:{minHeight:44,paddingHorizontal:16,paddingVertical:12,alignItems:'center',justifyContent:'center',backgroundColor:'#325f5b',borderRadius:10,borderWidth:1,borderColor:'#59857b'},quiet:{backgroundColor:'#112b30',borderColor:'#34585e'},buttonText:{color:'#e0eee0',fontSize:13,fontWeight:'600'},dim:{opacity:0.45},
+  button:{minHeight:44,paddingHorizontal:16,paddingVertical:12,alignItems:'center',justifyContent:'center',backgroundColor:'#325f5b',borderRadius:10,borderWidth:1,borderColor:'#59857b'},quiet:{backgroundColor:'#112b30',borderColor:'#34585e'},buttonText:{color:'#e0eee0',fontSize:13,fontWeight:'600',textAlign:'center'},dim:{opacity:0.45},
   summary:{gap:6,marginBottom:5},notice:{color:'#d5dca9',fontSize:12,lineHeight:18},error:{color:'#f0c1ac',fontSize:12,lineHeight:18},
   pond:{width:174,height:154,borderRadius:80,borderWidth:1,borderColor:'#46676a',backgroundColor:'#102e34',alignItems:'center',justifyContent:'center',marginVertical:4},
   mother:{width:63,height:63,borderRadius:32,borderWidth:2,borderColor:'#91adae',backgroundColor:'#25494f',alignItems:'center',justifyContent:'center'},core:{width:23,height:23,borderRadius:12,backgroundColor:'#bcb370',borderWidth:2,borderColor:'#dfca8b'},cell:{position:'absolute',width:17,height:17,borderRadius:9,borderWidth:1,borderColor:'#b2d3d8',backgroundColor:'#365d66'},
