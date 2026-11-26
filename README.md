@@ -14,7 +14,7 @@ Henri has playtested the game in Expo Go on his iPhone and confirmed the blank-d
 
 ## TestFlight
 
-Follow the [TestFlight setup and Replit handoff](docs/TESTFLIGHT.md) to link the real Expo project, build the signed iOS app and upload that exact build to an internal testing group. The repository includes a store-distribution build profile, automatic build numbering, app icon and native privacy/export configuration. Account IDs and signing credentials must come from the authenticated Expo and Apple setup. Configuration does not mean a build has been uploaded. Keep work on `phase-02-foundation`; no merge into `main` is needed.
+The game is linked to the verified [Petriverse Expo project](https://expo.dev/accounts/henrihubert/projects/petriverse-mobile). Follow the [TestFlight setup](docs/TESTFLIGHT.md) to complete Apple signing, build the iOS app and upload that exact build to an internal testing group. The repository includes a store-distribution build profile, automatic build numbering, app icon and native privacy/export configuration. GitHub integration and Apple credentials remain separate setup steps. Replit is optional. Configuration does not mean a build has been uploaded. Keep work on `phase-02-foundation`; no merge into `main` is needed.
 
 ## Development
 See [encounter engine](docs/ENCOUNTER_ENGINE.md), [technical audit](docs/TECHNICAL_AUDIT.md), [feature parity](docs/FEATURE_PARITY.md), [roadmap](docs/MOBILE_ROADMAP.md), and [development log](DEVLOG.md). GitHub is the source of truth. See [Replit run instructions](replit.md) for the Expo Go tunnel workflow and setup verification. Dependency versions have passed the installed SDK compatibility check; `package-lock.json` records the resolved versions.

@@ -8,12 +8,22 @@ The app config includes an opaque 1024-pixel icon, landscape support, an iPad fu
 
 The lockfile uses public npm tarball URLs so the same pinned versions and integrity hashes can install on Expo's build servers as well as Replit.
 
-## Recommended route in Replit
+## Verified Expo project
+
+Created on 2026-11-27 under Henri's existing account:
+
+- Project: [Petriverse](https://expo.dev/accounts/henrihubert/projects/petriverse-mobile)
+- Owner and full name: `henrihubert`, `@henrihubert/petriverse-mobile`
+- Project ID: `77b3b2d9-55c8-4604-b96e-89a230456887`
+
+The verified owner and project ID are recorded in `app.json`. This links the existing game to its Expo project; it does not import source code or authorize GitHub access. Repository integration, Apple signing and the App Store Connect record remain separate setup steps. No signed build or submission has been created. The intended direct workflow is development in Codex, source in GitHub, and builds/submission through Expo; Replit is optional.
+
+## Optional Replit route
 
 Open the existing Petriverse project in Replit's browser Project Editor after syncing the latest development branch while preserving local commits and the mobile workflow.
 
 1. Open **Publishing** and select **Start publishing to the App Store** to open Expo Launch.
-2. Confirm the Petriverse Expo project or choose **Use existing** for its verified project. Retain the name Petriverse and slug petriverse-mobile.
+2. Choose **Use existing** and select `@henrihubert/petriverse-mobile`, with the project ID above. Retain the name Petriverse and slug petriverse-mobile; do not create a duplicate project.
 3. Sign in with the Apple Developer account that should own the game and complete its verification prompts.
 4. Select or create the Apple app using **com.aiengineerhub.petriverse**. Verify this identifier before the first upload.
 5. Let Launch configure signing, then select **Launch to App Store** when ready to build and upload. After processing, use the internal TestFlight group described below. A TestFlight upload does not itself release the app publicly.
@@ -22,7 +32,7 @@ Use the launch workflow's displayed build and submission status as the source of
 
 Replit's current documentation says standalone EAS CLI and EAS Build are not supported inside Replit. The commands below are an alternative for a separate development machine with this GitHub checkout, not a requirement for Replit's integrated Launch flow. If the App Store option is unavailable for the imported project, use that alternative rather than converting the game to a website.
 
-## Manual EAS alternative: 1. Update the development checkout
+## Direct EAS workflow: 1. Update the development checkout
 
 Use a supported development host with Node 22.13 or later. Commit or otherwise preserve any existing local work before switching branches or pulling. If the branch has diverged, reconcile its local commits before continuing; do not discard them to force a pull.
 
@@ -36,7 +46,7 @@ npm ci
 
 Keep this beta work on `phase-02-foundation`; no merge into `main` is required.
 
-## 2. Link the real Expo account and project
+## 2. Verify the Expo account and project
 
 Check the current account:
 
@@ -44,7 +54,7 @@ Check the current account:
 npx --yes eas-cli@latest whoami
 ```
 
-If not signed in, or if the wrong account is selected, sign in with the Expo account that should own this game:
+If not signed in, sign in with `henrihubert` or an account authorized to access this project. If another account is already signed in, verify access before changing that session:
 
 ```sh
 npx --yes eas-cli@latest login --no-browser
@@ -56,14 +66,14 @@ Check the project linkage:
 npx --yes eas-cli@latest project:info
 ```
 
-If no EAS project is linked, run:
+The current checkout is already linked. Only if an older checkout is missing the project ID, link this exact existing project:
 
 ```sh
-npx --yes eas-cli@latest init
+npx --yes eas-cli@latest init --id 77b3b2d9-55c8-4604-b96e-89a230456887
 npx --yes eas-cli@latest project:info
 ```
 
-Choose the actual account or organization and link its existing Petriverse project if one exists. Otherwise create it under that account. Verify the displayed owner and project before building. The CLI writes the real `extra.eas.projectId` and may add `owner` to `app.json`. These values are intentionally absent until the account is known.
+Verify that the output identifies `@henrihubert/petriverse-mobile` and the project ID above before building. The public project identity is committed; passwords, API tokens and signing material are not.
 
 If this bundle identifier already has uploaded builds, initialize EAS with its latest Apple build number before the first build using `npx --yes eas-cli@latest build:version:set`, selecting iOS. A new app with no configured build number starts at 1 automatically.
 
