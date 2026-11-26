@@ -7,7 +7,16 @@
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.aiengineerhub.petriverse"
+      "bundleIdentifier": "com.aiengineerhub.petriverse",
+      "requireFullScreen": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "privacyManifests": {
+        "NSPrivacyTracking": false,
+        "NSPrivacyTrackingDomains": [],
+        "NSPrivacyCollectedDataTypes": []
+      }
     },
     "android": {
       "package": "com.aiengineerhub.petriverse",
@@ -28,6 +37,7 @@
     ],
     "updates": {
       "enabled": false
-    }
+    },
+    "icon": "./assets/branding/app-icon.png"
   }
 }
