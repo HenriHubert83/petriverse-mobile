@@ -1,0 +1,408 @@
+{
+  "source": "HenriHubert83/petriverse",
+  "commit": "be96d3e0641571cc37255fb8701ea83e20c28aee",
+  "conversion": "ffmpeg AAC, 128 kbit/s, 44100 Hz, faststart M4A",
+  "files": [
+    {
+      "id": "amber_nautilus",
+      "source": "assets/audio/introductions/amber_nautilus.ogg",
+      "sourceGitBlob": "723f882cbe803055ff9afb894d26ff5e35d676c7",
+      "destination": "assets/audio/introductions-mobile/amber_nautilus.m4a",
+      "bytes": 252274,
+      "sha256": "1f00b8651da02f001450dc82b528ad1a50c37d993b0e16ec7f527fbb728ac538",
+      "duration": 15.600998
+    },
+    {
+      "id": "amoeba",
+      "source": "assets/audio/introductions/amoeba.ogg",
+      "sourceGitBlob": "687fe9946e48bfaa737b0d10894ed0e365c3c3bb",
+      "destination": "assets/audio/introductions-mobile/amoeba.m4a",
+      "bytes": 258063,
+      "sha256": "b698eee839e26dce7f8b0c3759c74f3fe5b249b143575dd7d898bd064fdca84d",
+      "duration": 15.8
+    },
+    {
+      "id": "bacterium",
+      "source": "assets/audio/introductions/bacterium.ogg",
+      "sourceGitBlob": "ed91fa4a8ad7504b5efc918984d8e97c6e7d6132",
+      "destination": "assets/audio/introductions-mobile/bacterium.m4a",
+      "bytes": 316200,
+      "sha256": "fc9e27cfd0b1aa2fbad437f73521eb87e78aa0df29f554f2f60c58fdebc6fc7b",
+      "duration": 19.6
+    },
+    {
+      "id": "bell_bud",
+      "source": "assets/audio/introductions/bell_bud.ogg",
+      "sourceGitBlob": "8053572abe1b6cbbf5d8e66e4f7a2cb5809e10b7",
+      "destination": "assets/audio/introductions-mobile/bell_bud.m4a",
+      "bytes": 317178,
+      "sha256": "cebab166b2c052f498b55d0eb65a28769b3f5612165d4d8789df0ee49bc375bb",
+      "duration": 19.6
+    },
+    {
+      "id": "bellwether",
+      "source": "assets/audio/introductions/bellwether.ogg",
+      "sourceGitBlob": "ded236b157a10a8bb3b73c3848cb53758b63620a",
+      "destination": "assets/audio/introductions-mobile/bellwether.m4a",
+      "bytes": 348656,
+      "sha256": "8a6924cdebc766f0d96265778794fd09ed8d5b088c8faaf5c07bcc16792aef91",
+      "duration": 21.6
+    },
+    {
+      "id": "bramble_cyst",
+      "source": "assets/audio/introductions/bramble_cyst.ogg",
+      "sourceGitBlob": "097346155803f51b2debc2c0c6ade34297981261",
+      "destination": "assets/audio/introductions-mobile/bramble_cyst.m4a",
+      "bytes": 337341,
+      "sha256": "218440f3b565a30c6616237400848cf98abc48cffe24d6cef9c42a57ef510e96",
+      "duration": 20.8
+    },
+    {
+      "id": "chalice_grazer",
+      "source": "assets/audio/introductions/chalice_grazer.ogg",
+      "sourceGitBlob": "79752954204e657a65a2160b79f347b377837dfc",
+      "destination": "assets/audio/introductions-mobile/chalice_grazer.m4a",
+      "bytes": 324046,
+      "sha256": "88ca0f74d61eac478cca11759f1057a833209076f5171821da510ca6cf177d77",
+      "duration": 20.000998
+    },
+    {
+      "id": "comb_grazer",
+      "source": "assets/audio/introductions/comb_grazer.ogg",
+      "sourceGitBlob": "a8878f5272fb004cb6a0713b945b7be06c845546",
+      "destination": "assets/audio/introductions-mobile/comb_grazer.m4a",
+      "bytes": 326280,
+      "sha256": "cf16ffb98bfa40db9fac1c03d4c03994583a7f4b1c2bab89050780fdc5f48bfb",
+      "duration": 20.100998
+    },
+    {
+      "id": "comet_spore",
+      "source": "assets/audio/introductions/comet_spore.ogg",
+      "sourceGitBlob": "69f3e4fdf56c12dab75a9bb3f1923c3ad4b0821e",
+      "destination": "assets/audio/introductions-mobile/comet_spore.m4a",
+      "bytes": 304881,
+      "sha256": "3bd36659f049a21eb0aeda20a1785d74fa192d0c7c1f016751d2dc081a61cf41",
+      "duration": 18.800998
+    },
+    {
+      "id": "conjoined",
+      "source": "assets/audio/introductions/conjoined.ogg",
+      "sourceGitBlob": "b4b0ffc13182c576b79dbcb5a13628032c80953f",
+      "destination": "assets/audio/introductions-mobile/conjoined.m4a",
+      "bytes": 335871,
+      "sha256": "ecb121717ef1ee7d1aa3a1b572b34356e5d1b10a1f6a2c225493b438e9b6bc44",
+      "duration": 20.800998
+    },
+    {
+      "id": "crown_cyst",
+      "source": "assets/audio/introductions/crown_cyst.ogg",
+      "sourceGitBlob": "87602a96a78465344e8b3c8b83d5a4c886a8253c",
+      "destination": "assets/audio/introductions-mobile/crown_cyst.m4a",
+      "bytes": 319573,
+      "sha256": "8b559de747726719669b340b425f05a0ad3ddbbe1b7223ae9dbf1aca945069e6",
+      "duration": 19.8
+    },
+    {
+      "id": "crown_rotifer",
+      "source": "assets/audio/introductions/crown_rotifer.ogg",
+      "sourceGitBlob": "1130af8b383bc0649136638dfa771d28166daecc",
+      "destination": "assets/audio/introductions-mobile/crown_rotifer.m4a",
+      "bytes": 335803,
+      "sha256": "383f283a5d68edfe2e00daa250550f75d914a79c8c7fb07f5507fcb5e337a55b",
+      "duration": 20.800998
+    },
+    {
+      "id": "cyst",
+      "source": "assets/audio/introductions/cyst.ogg",
+      "sourceGitBlob": "e6486955356496391f046908a859da02cb7eb86a",
+      "destination": "assets/audio/introductions-mobile/cyst.m4a",
+      "bytes": 276125,
+      "sha256": "b6e41708d0b734b7a14018fa164d49e680b5d22f42c45abf1532e0310605b58a",
+      "duration": 17.0
+    },
+    {
+      "id": "divider",
+      "source": "assets/audio/introductions/divider.ogg",
+      "sourceGitBlob": "f9c7b6bb813a2000791da36d08c75f9257cfe632",
+      "destination": "assets/audio/introductions-mobile/divider.m4a",
+      "bytes": 257229,
+      "sha256": "a845cd4624d054624ace0b752b7d3f5c42b6789ef06ae45e2e43ac9137b3e9db",
+      "duration": 15.9
+    },
+    {
+      "id": "drifter",
+      "source": "assets/audio/introductions/drifter.ogg",
+      "sourceGitBlob": "690bed5e530e64842bd7e44e6fdaf8b8740072c0",
+      "destination": "assets/audio/introductions-mobile/drifter.m4a",
+      "bytes": 320593,
+      "sha256": "44e547c68900731f66f215b5c74f49c3da4b1c2d76cecce6ecfb4da336799069",
+      "duration": 19.8
+    },
+    {
+      "id": "fern_desmid",
+      "source": "assets/audio/introductions/fern_desmid.ogg",
+      "sourceGitBlob": "ccd22dfe42b97a87b8be834467159fdea127f30e",
+      "destination": "assets/audio/introductions-mobile/fern_desmid.m4a",
+      "bytes": 308117,
+      "sha256": "d012d2aa12184f416f123d7c5a53b6230df2d9bc7ddb5ae801a4c02e347f1b25",
+      "duration": 19.0
+    },
+    {
+      "id": "food",
+      "source": "assets/audio/introductions/food.ogg",
+      "sourceGitBlob": "3829774ee89eddf0267d56eb87617887bffef389",
+      "destination": "assets/audio/introductions-mobile/food.m4a",
+      "bytes": 262533,
+      "sha256": "76ff07df6764a5b8d1a7e893b3097d38ab3bd23ec949f44f0a7373cbaf3908e2",
+      "duration": 16.100998
+    },
+    {
+      "id": "glass_harp",
+      "source": "assets/audio/introductions/glass_harp.ogg",
+      "sourceGitBlob": "8ffc37af1474d7d1130bd825e32813b9fdc7f781",
+      "destination": "assets/audio/introductions-mobile/glass_harp.m4a",
+      "bytes": 255938,
+      "sha256": "6e0ce26e0a268668012bdca97df03706a2dc9847853a2529781fcc197fdbfd28",
+      "duration": 15.8
+    },
+    {
+      "id": "glasswing_spore",
+      "source": "assets/audio/introductions/glasswing_spore.ogg",
+      "sourceGitBlob": "09b2dc63d844ed491b9b59367648d9105c745224",
+      "destination": "assets/audio/introductions-mobile/glasswing_spore.m4a",
+      "bytes": 291145,
+      "sha256": "ee1d83f7c0c092d0d7fd3c6641dbbd9286e7043272773f35861ae7ca3c303c70",
+      "duration": 18.0
+    },
+    {
+      "id": "glowdrift",
+      "source": "assets/audio/introductions/glowdrift.ogg",
+      "sourceGitBlob": "1f16f1be41b5b091896e0880eb9d2b7ab8c306ac",
+      "destination": "assets/audio/introductions-mobile/glowdrift.m4a",
+      "bytes": 287263,
+      "sha256": "3aedbfeebd05bfff2ecb43e85d76ce12fc8fc3f127846326bd51b2cb65cace0d",
+      "duration": 17.7
+    },
+    {
+      "id": "grazer",
+      "source": "assets/audio/introductions/grazer.ogg",
+      "sourceGitBlob": "eabcdda2a8f2672614b95ad6fd8582114a0b3780",
+      "destination": "assets/audio/introductions-mobile/grazer.m4a",
+      "bytes": 295607,
+      "sha256": "d1a4a5ef42d00ef831579211e0de25979c95a1b768cceedba9347ccff804472d",
+      "duration": 18.200998
+    },
+    {
+      "id": "hourglass_divider",
+      "source": "assets/audio/introductions/hourglass_divider.ogg",
+      "sourceGitBlob": "71c13cc99cb32d1a74dc48f24ebd5557979bc2bf",
+      "destination": "assets/audio/introductions-mobile/hourglass_divider.m4a",
+      "bytes": 223020,
+      "sha256": "279a0195047fefc0f559bbb26b1f5ada88cb69a2c1820bed56282fb83d58b7b1",
+      "duration": 13.700998
+    },
+    {
+      "id": "lace_parasite",
+      "source": "assets/audio/introductions/lace_parasite.ogg",
+      "sourceGitBlob": "d354d480f72ee903b9109e9abafdafeb3b3cd293",
+      "destination": "assets/audio/introductions-mobile/lace_parasite.m4a",
+      "bytes": 276068,
+      "sha256": "adc5c804c794ee8a223397058e9ff6d5a75787d8661cb0e98846e49fbfb1c698",
+      "duration": 17.0
+    },
+    {
+      "id": "lantern_grazer",
+      "source": "assets/audio/introductions/lantern_grazer.ogg",
+      "sourceGitBlob": "63353cdf22e7310b1fdc11d2218f58c3a4a7787d",
+      "destination": "assets/audio/introductions-mobile/lantern_grazer.m4a",
+      "bytes": 267538,
+      "sha256": "69c3e5f6d3549846264a3ac45fd1a5cdb4fa01ebb0951719c3bb0a5d4c5c0f3a",
+      "duration": 16.5
+    },
+    {
+      "id": "moonlace",
+      "source": "assets/audio/introductions/moonlace.ogg",
+      "sourceGitBlob": "cf6f971c516e575e92622657ab378e2ec06ba269",
+      "destination": "assets/audio/introductions-mobile/moonlace.m4a",
+      "bytes": 258292,
+      "sha256": "282a2cdaabe6c084cbe0f9d2dad97b9d81bfe4dcf2bb20f4192543200ed9369c",
+      "duration": 16.0
+    },
+    {
+      "id": "needle_hunter",
+      "source": "assets/audio/introductions/needle_hunter.ogg",
+      "sourceGitBlob": "a3c8d4f1f348425fa2d6707d9df667c9290b178b",
+      "destination": "assets/audio/introductions-mobile/needle_hunter.m4a",
+      "bytes": 280428,
+      "sha256": "d8888dd1d64fe24b140155fcc0831bd1dbddd5dbc554fe30392fc2723241eca7",
+      "duration": 17.3
+    },
+    {
+      "id": "parasite",
+      "source": "assets/audio/introductions/parasite.ogg",
+      "sourceGitBlob": "136200a594c0e472d41da480f58f447184c6221d",
+      "destination": "assets/audio/introductions-mobile/parasite.m4a",
+      "bytes": 310349,
+      "sha256": "f431d9a50017c1595b576341d2ac1da1bf941e3c3260b42c985a4d7156b7fe54",
+      "duration": 19.2
+    },
+    {
+      "id": "phage",
+      "source": "assets/audio/introductions/phage.ogg",
+      "sourceGitBlob": "224934ed86bd860ffb827df621f3c812a84dcbf5",
+      "destination": "assets/audio/introductions-mobile/phage.m4a",
+      "bytes": 369850,
+      "sha256": "8c789fd7019a2b14912e0d9b0094bee1a2716460227e5954b6c6fd543dc0971d",
+      "duration": 22.8
+    },
+    {
+      "id": "prism_hunter",
+      "source": "assets/audio/introductions/prism_hunter.ogg",
+      "sourceGitBlob": "f05adabbbc5d853c5a0894546093c3c9a8601fdc",
+      "destination": "assets/audio/introductions-mobile/prism_hunter.m4a",
+      "bytes": 259729,
+      "sha256": "c5abe6b3ac00f99010b47e1fb7e34acc80726ed0b352a5a68059f03423328653",
+      "duration": 16.0
+    },
+    {
+      "id": "regent",
+      "source": "assets/audio/introductions/regent.ogg",
+      "sourceGitBlob": "0f838fe6fc671ef4cf75cdbb88ad2be923c3c2d6",
+      "destination": "assets/audio/introductions-mobile/regent.m4a",
+      "bytes": 313539,
+      "sha256": "dda7d5001d45572c245b9100b74d2f52d1bc1ee02fa3c864f7bd229fd8cb55b8",
+      "duration": 19.400998
+    },
+    {
+      "id": "ribbon_divider",
+      "source": "assets/audio/introductions/ribbon_divider.ogg",
+      "sourceGitBlob": "f37d91fe1fef08c5e2ec88797509f36129ee5e87",
+      "destination": "assets/audio/introductions-mobile/ribbon_divider.m4a",
+      "bytes": 269758,
+      "sha256": "9afe1b3a50f91bbc6fea965ff3d641c304435bf403352fa871a9a2570f7efad1",
+      "duration": 16.7
+    },
+    {
+      "id": "ribbon_hunter",
+      "source": "assets/audio/introductions/ribbon_hunter.ogg",
+      "sourceGitBlob": "7c375b8e2a9df0bd9ef3e449d49c48fe09fcbc75",
+      "destination": "assets/audio/introductions-mobile/ribbon_hunter.m4a",
+      "bytes": 276483,
+      "sha256": "cbb2e917ab821258ca983575cdcc862615dbbfe5aa21fdd24691fa36ac84bbdd",
+      "duration": 17.1
+    },
+    {
+      "id": "sail_spore",
+      "source": "assets/audio/introductions/sail_spore.ogg",
+      "sourceGitBlob": "ca21ced7083d72be875115b9a03c6297a7108217",
+      "destination": "assets/audio/introductions-mobile/sail_spore.m4a",
+      "bytes": 255017,
+      "sha256": "783f592d9a5ee989a8b7597b6990705d3247d9a4cf2caac10359d8253613a0c1",
+      "duration": 15.8
+    },
+    {
+      "id": "shellback",
+      "source": "assets/audio/introductions/shellback.ogg",
+      "sourceGitBlob": "9ee9efb1cf6193b1a5b50656f0e1c2901dfb923f",
+      "destination": "assets/audio/introductions-mobile/shellback.m4a",
+      "bytes": 280259,
+      "sha256": "9ad069748abd516de862afe3ed869f423a945480f5030ce7f4c32e4a4058d111",
+      "duration": 17.2
+    },
+    {
+      "id": "sieve_alga",
+      "source": "assets/audio/introductions/sieve_alga.ogg",
+      "sourceGitBlob": "a3540d4ff957906de569c9056ba92cb52adfc97d",
+      "destination": "assets/audio/introductions-mobile/sieve_alga.m4a",
+      "bytes": 275988,
+      "sha256": "866b4367166170302c19ff816cccdb0ae3ce86e44fc12c1c7c91913f22c65b10",
+      "duration": 17.1
+    },
+    {
+      "id": "snow_spore",
+      "source": "assets/audio/introductions/snow_spore.ogg",
+      "sourceGitBlob": "bfb7c06511e472a58b7f1a3c423716a695f92697",
+      "destination": "assets/audio/introductions-mobile/snow_spore.m4a",
+      "bytes": 313980,
+      "sha256": "1e9ead8803a79e3c7afe9fa7d16c9f9fbd33e9ea2b268bdae597976e55f486e4",
+      "duration": 19.500998
+    },
+    {
+      "id": "spiral_alga",
+      "source": "assets/audio/introductions/spiral_alga.ogg",
+      "sourceGitBlob": "2873adde8c5e29f793de2c7878518d98403873d1",
+      "destination": "assets/audio/introductions-mobile/spiral_alga.m4a",
+      "bytes": 317684,
+      "sha256": "6f333d6b1dab280768fbe4cb30b993ab190b3cddf9e28d15bfd8e9eb565b1fe4",
+      "duration": 19.6
+    },
+    {
+      "id": "spore",
+      "source": "assets/audio/introductions/spore.ogg",
+      "sourceGitBlob": "add11825faabfd90383e7fd6fb633389c723f113",
+      "destination": "assets/audio/introductions-mobile/spore.m4a",
+      "bytes": 333718,
+      "sha256": "28c04876551082c45e24b1ee254e31e9cb49605e9b975eecbe677a769d15659d",
+      "duration": 20.700998
+    },
+    {
+      "id": "sundial_alga",
+      "source": "assets/audio/introductions/sundial_alga.ogg",
+      "sourceGitBlob": "6ae398c0083c70a9ae9597e4f9c18b6ea6042019",
+      "destination": "assets/audio/introductions-mobile/sundial_alga.m4a",
+      "bytes": 306068,
+      "sha256": "722cee1afb230d6866d18c3d0910cfb17ea2db3a6ed94543f23856ce02cc39a0",
+      "duration": 18.9
+    },
+    {
+      "id": "thistle_capsule",
+      "source": "assets/audio/introductions/thistle_capsule.ogg",
+      "sourceGitBlob": "d3823c5df9df0313d574a1bb78d7e12746f735d3",
+      "destination": "assets/audio/introductions-mobile/thistle_capsule.m4a",
+      "bytes": 275124,
+      "sha256": "fd66d0cbe96f973a007f5b2d8d697728e0da74d5f421505bc6d64e4c67852651",
+      "duration": 17.0
+    },
+    {
+      "id": "trident_hunter",
+      "source": "assets/audio/introductions/trident_hunter.ogg",
+      "sourceGitBlob": "c01ab8bb5c6ff3a6f2444b8eaf666ffa4133d0f2",
+      "destination": "assets/audio/introductions-mobile/trident_hunter.m4a",
+      "bytes": 257148,
+      "sha256": "edc15eb4a7f0929f9a831205c2518fcceb495fa7d19317d4fcd0523a6b288efe",
+      "duration": 15.9
+    },
+    {
+      "id": "twinspore",
+      "source": "assets/audio/introductions/twinspore.ogg",
+      "sourceGitBlob": "8e3caca9f34d39129f7607bdfc3945f8caf8ef26",
+      "destination": "assets/audio/introductions-mobile/twinspore.m4a",
+      "bytes": 312109,
+      "sha256": "99d3e8f7b4128e89d00cc8bcbaaa065c02839a5b693debde878fc845814d325c",
+      "duration": 19.2
+    },
+    {
+      "id": "veil_parasite",
+      "source": "assets/audio/introductions/veil_parasite.ogg",
+      "sourceGitBlob": "9c832951a374555ec995fbb934c95a4c70b702c2",
+      "destination": "assets/audio/introductions-mobile/veil_parasite.m4a",
+      "bytes": 309803,
+      "sha256": "1c4876f7eaf3a95f84c16644bc6256cd92c14782b40956fbc82714e4f5005fde",
+      "duration": 19.2
+    },
+    {
+      "id": "warden",
+      "source": "assets/audio/introductions/warden.ogg",
+      "sourceGitBlob": "77a1416f3c3a781085e7234b69e7ae0da7664ed7",
+      "destination": "assets/audio/introductions-mobile/warden.m4a",
+      "bytes": 330323,
+      "sha256": "f8991080ae1b421ea01802e28fe995a83b74b64b5e5d85f87f2cfa171bb51771",
+      "duration": 20.4
+    }
+  ],
+  "script": {
+    "source": "prototype/data/creature_films.json",
+    "gitBlob": "9ac419d5724bf10d9a833c74bf8c0135d21598d4",
+    "destination": "src/cinema/creatureFilms.json"
+  }
+}
