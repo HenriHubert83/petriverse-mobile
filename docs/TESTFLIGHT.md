@@ -16,7 +16,13 @@ Created on 2026-11-27 under Henri's existing account:
 - Owner and full name: `henrihubert`, `@henrihubert/petriverse-mobile`
 - Project ID: `77b3b2d9-55c8-4604-b96e-89a230456887`
 
-The verified owner and project ID are recorded in `app.json`. This links the existing game to its Expo project; it does not import source code or authorize GitHub access. Repository integration, Apple signing and the App Store Connect record remain separate setup steps. No signed build or submission has been created. The intended direct workflow is development in Codex, source in GitHub, and builds/submission through Expo; Replit is optional.
+The verified owner and project ID are recorded in `app.json`. The Expo project's GitHub integration was also connected to `HenriHubert83/petriverse-mobile` on 2026-11-27. Apple signing and the App Store Connect record remain separate setup steps. No signed build or submission has been created. The intended direct workflow is development in Codex, source in GitHub, and builds/submission through Expo; Replit is optional.
+
+## GitHub build settings
+
+The connected repository is [HenriHubert83/petriverse-mobile](https://github.com/HenriHubert83/petriverse-mobile). Its Expo app and EAS configuration are at the repository root, so the base-directory field can remain empty. Select `phase-02-foundation` and the `testflight` profile for this beta; no merge into `main` is required.
+
+The inherited production iOS profile explicitly selects the `latest` build image, as required for GitHub-triggered builds. Expo's GitHub-build setup also requires a successful initial EAS build for the platform. Complete the account and signing setup and the first signed iOS build below before relying on subsequent GitHub-triggered builds. Connecting the repository alone does not configure signing or start a build.
 
 ## Optional Replit route
 
@@ -125,4 +131,4 @@ Configuration alone does not establish that a signed build works on a device. Th
 
 An initial local iOS Prebuild confirmed the icon, bundle settings, landscape orientations, export declaration, app privacy manifest and absence of microphone/background-audio entries. This did not run Xcode, signing, CocoaPods privacy aggregation or Apple's upload validation. The iPad full-screen flag is a compatibility setting; newer iPad windowing behavior still needs device verification.
 
-References: [Replit's integrated App Store flow](https://docs.replit.com/build/mobile-app#publish-to-the-app-store), [Replit native mobile support](https://docs.replit.com/features/artifact-types/building-mobile-apps), [Expo TestFlight submission](https://docs.expo.dev/submit/testflight/), [EAS configuration](https://docs.expo.dev/eas/json/), [remote app versions](https://docs.expo.dev/build-reference/app-versions/), [EAS CLI](https://docs.expo.dev/eas/cli/).
+References: [Replit's integrated App Store flow](https://docs.replit.com/build/mobile-app#publish-to-the-app-store), [Replit native mobile support](https://docs.replit.com/features/artifact-types/building-mobile-apps), [Expo TestFlight submission](https://docs.expo.dev/submit/testflight/), [Expo GitHub builds](https://docs.expo.dev/build/building-from-github/), [EAS configuration](https://docs.expo.dev/eas/json/), [remote app versions](https://docs.expo.dev/build-reference/app-versions/), [EAS CLI](https://docs.expo.dev/eas/cli/).

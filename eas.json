@@ -13,6 +13,7 @@
       "distribution": "store",
       "autoIncrement": true,
       "ios": {
+        "image": "latest",
         "simulator": false,
         "buildConfiguration": "Release"
       },
