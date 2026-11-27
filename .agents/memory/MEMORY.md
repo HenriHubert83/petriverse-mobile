@@ -1,1 +1,0 @@
-- [Phone preview authentication](phone-preview-auth.md) — confirmed playable in Expo Go after Shell-only login; browser-size presets are not native simulators.

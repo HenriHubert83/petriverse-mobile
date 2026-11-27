@@ -30,10 +30,10 @@ Status recorded on 2026-11-27:
 | Build completion | 2026-11-27 at 10:09 CET, verified through the Expo plugin |
 | Launch workflow | `01a21c3e-fa4b-783a-bf5d-5a971d6a6e6b`, `SUCCESS`, one `app-store` job |
 | Apple app record | [Petriverse in App Store Connect](https://appstoreconnect.apple.com/apps/6839946727/distribution), numeric Apple ID `6839946727` |
-| Submission | The user's Expo dashboard screenshot shows the iOS App Store submission succeeded; a submission ID and live Apple processing status have not been independently verified |
-| Installation | Tester-group membership, TestFlight availability and the first device installation remain unverified |
+| Submission | The user's Expo dashboard screenshot shows the iOS App Store submission succeeded; Henri subsequently confirmed TestFlight availability. A submission ID has not been recorded |
+| Installation | Henri confirmed TestFlight availability, installation and app launch on his iPhone on 2026-11-27 |
 
-The launch was opened from the branch-specific GitHub URL below. Expo's build and workflow metadata returned no source commit or Git reference, so the exact built GitHub commit is not independently verified. Henri selected **Launch to Testers** with **Team (Expo)**; the displayed option offered an invitation for all admins, but completed invitations and tester membership are not yet verified. Do not treat build or upload success as proof that TestFlight installation is available.
+The launch was opened from the branch-specific GitHub URL below. Expo's build and workflow metadata returned no source commit or Git reference, so the exact built GitHub commit is not independently verified. Henri selected **Launch to Testers** with **Team (Expo)**; the displayed option offered an invitation for all admins. His own TestFlight access is now confirmed; the full invitation and tester-group membership list has not been independently checked. TestFlight is the preferred route for subsequent device testing.
 
 ## Standalone Expo Launch in a browser
 
@@ -156,7 +156,7 @@ Skip the commit and push if those files did not change. Keep unrelated local cha
 
 For another beta, use the standalone Launch route above or pull the latest development branch and repeat optional CLI steps 3 and 4 with the new build's ID. EAS increments its build number automatically. Over-the-air updates are disabled, so code changes require a new build and TestFlight installation.
 
-Configuration alone does not establish that a signed build works on a device. The first installation still needs a short play session covering launch, sound, pause/resume, and progress after closing and reopening the app.
+Henri confirmed installation and app launch for the first signed build. A complete playthrough, sound, pause/resume, progress after closing and reopening the app, and native performance still need verification through TestFlight.
 
 An initial local iOS Prebuild confirmed the icon, bundle settings, landscape orientations, export declaration, app privacy manifest and absence of microphone/background-audio entries. This did not run Xcode, signing, CocoaPods privacy aggregation or Apple's upload validation. The iPad full-screen flag is a compatibility setting; newer iPad windowing behavior still needs device verification.
 
